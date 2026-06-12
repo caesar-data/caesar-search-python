@@ -1,0 +1,124 @@
+name: spec-sync
+
+# Polls the live public OpenAPI spec, regenerates the models when it changes,
+# classifies the change with oasdiff, and auto-releases non-breaking updates.
+# Breaking changes open a PR that waits for review. Also replays the live
+# contract flow nightly so server-side drift is caught even without spec
+# changes. No monorepo credentials required: the spec travels over the public
+# spec URL.
+
+on:
+  schedule:
+    - cron: "23 */6 * * *"
+  workflow_dispatch: {}
+
+env:
+  SPEC_URL: https://search-api-staging-779189860552.europe-west1.run.app/openapi/public.json
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --frozen
+      - name: Replay search -> read -> feedback against staging
+        env:
+          CAESAR_CONTRACT: "1"
+        run: uv run pytest tests/contract -v
+
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v5
+      - name: Fetch live spec and detect drift
+        id: drift
+        run: |
+          curl -fsS "$SPEC_URL" -o /tmp/live-spec.json
+          jq -S . /tmp/live-spec.json > /tmp/live-normalized.json
+          jq -S . spec/openapi-public.json > /tmp/vendored-normalized.json
+          if cmp -s /tmp/live-normalized.json /tmp/vendored-normalized.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Classify the change
+        id: classify
+        if: steps.drift.outputs.changed == 'true'
+        run: |
+          docker run --rm -v /tmp:/tmp -v "$PWD/spec:/spec" ghcr.io/oasdiff/oasdiff \
+            breaking /spec/openapi-public.json /tmp/live-spec.json > /tmp/breaking.txt || true
+          if [ -s /tmp/breaking.txt ]; then
+            echo "breaking=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "breaking=false" >> "$GITHUB_OUTPUT"
+          fi
+          {
+            echo "summary<<EOF"
+            docker run --rm -v /tmp:/tmp -v "$PWD/spec:/spec" ghcr.io/oasdiff/oasdiff \
+              changelog /spec/openapi-public.json /tmp/live-spec.json || true
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+      - name: Regenerate and test
+        if: steps.drift.outputs.changed == 'true'
+        run: |
+          cp /tmp/live-spec.json spec/openapi-public.json
+          uv sync --frozen
+          uv run datamodel-codegen
+          uv run ruff check .
+          uv run mypy
+          uv run pytest
+      - name: Auto-release (non-breaking)
+        if: steps.drift.outputs.changed == 'true' && steps.classify.outputs.breaking == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "caesar-spec-sync"
+          git config user.email "releases@caesar.xyz"
+          VERSION=$(uv run python -c "
+          import re
+          content = open('pyproject.toml').read()
+          current = re.search(r'version = \"(\d+)\.(\d+)\.(\d+)\"', content)
+          major, minor, patch = map(int, current.groups())
+          print(f'{major}.{minor}.{patch + 1}')
+          ")
+          uv run python - "$VERSION" <<'PYEOF'
+          import re, sys
+          version = sys.argv[1]
+          for path in ("pyproject.toml", "src/caesar_search/_version.py"):
+              content = open(path).read()
+              content = re.sub(r'version = "\d+\.\d+\.\d+"', f'version = "{version}"', content)
+              content = re.sub(r'__version__ = "\d+\.\d+\.\d+"', f'__version__ = "{version}"', content)
+              open(path, "w").write(content)
+          PYEOF
+          uv lock
+          git add -A
+          git commit -m "chore: regenerate from updated public spec (v${VERSION})"
+          git tag "v${VERSION}"
+          git push origin main "v${VERSION}"
+          # Tags pushed with GITHUB_TOKEN do not trigger workflows; dispatch
+          # the release workflow explicitly (workflow_dispatch is exempt).
+          gh workflow run release.yml --ref "v${VERSION}"
+      - name: Open review PR (breaking)
+        if: steps.drift.outputs.changed == 'true' && steps.classify.outputs.breaking == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SUMMARY: ${{ steps.classify.outputs.summary }}
+        run: |
+          git config user.name "caesar-spec-sync"
+          git config user.email "releases@caesar.xyz"
+          BRANCH="spec-sync/breaking-$(date -u +%Y%m%d%H%M)"
+          git checkout -b "$BRANCH"
+          git add -A
+          git commit -m "feat!: regenerate from updated public spec (breaking)"
+          git push origin "$BRANCH"
+          gh pr create --title "Breaking spec change: review required" \
+            --body "$(printf 'oasdiff classified this spec update as breaking.\n\n```\n%s\n```\n\nMerge and tag a minor release after review.' "$SUMMARY")" \
+            --label breaking || gh pr create --title "Breaking spec change: review required" \
+            --body "oasdiff classified this spec update as breaking. Merge and tag a minor release after review."

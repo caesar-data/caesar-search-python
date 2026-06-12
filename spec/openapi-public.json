@@ -1,0 +1,1266 @@
+{
+  "components": {
+    "schemas": {
+      "Access": {
+        "additionalProperties": false,
+        "properties": {
+          "rate_limit": {
+            "$ref": "#/components/schemas/RateLimit"
+          },
+          "tier": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tier",
+          "rate_limit"
+        ],
+        "type": "object"
+      },
+      "CaptureHistoryEntry": {
+        "additionalProperties": false,
+        "properties": {
+          "capture_id": {
+            "type": "string"
+          },
+          "capture_time": {
+            "type": "string"
+          },
+          "content_digest": {
+            "type": "string"
+          },
+          "content_format": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "capture_id",
+          "capture_time",
+          "content_digest"
+        ],
+        "type": "object"
+      },
+      "ContentRange": {
+        "additionalProperties": false,
+        "properties": {
+          "capture_id": {
+            "description": "Optional capture pin; a stale_range warning is returned when the latest capture differs.",
+            "type": "string"
+          },
+          "max_chars": {
+            "description": "Maximum characters for this range; overrides content.max_chars.",
+            "format": "int64",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "start_char": {
+            "description": "Character offset to start content from.",
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "Document": {
+        "additionalProperties": false,
+        "properties": {
+          "canonical_url": {
+            "type": "string"
+          },
+          "content_digest": {
+            "type": "string"
+          },
+          "doc_id": {
+            "type": "string"
+          },
+          "first_seen_at": {
+            "type": "string"
+          },
+          "headings": {
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "last_seen_at": {
+            "type": "string"
+          },
+          "latest_capture_id": {
+            "type": "string"
+          },
+          "meta_description": {
+            "type": "string"
+          },
+          "published_at": {
+            "type": "string"
+          },
+          "source_url": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "doc_id",
+          "canonical_url",
+          "source_url",
+          "first_seen_at",
+          "last_seen_at"
+        ],
+        "type": "object"
+      },
+      "DocumentContent": {
+        "additionalProperties": false,
+        "properties": {
+          "char_count": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "format": {
+            "type": "string"
+          },
+          "selection": {
+            "type": "string"
+          },
+          "start_char": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "text": {
+            "type": "string"
+          },
+          "truncated": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "selection",
+          "format",
+          "text",
+          "truncated",
+          "char_count"
+        ],
+        "type": "object"
+      },
+      "DocumentContentRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "format": {
+            "default": "markdown",
+            "description": "Returned content format.",
+            "enum": [
+              "text",
+              "markdown"
+            ],
+            "type": "string"
+          },
+          "include_offsets": {
+            "description": "Whether passage offsets should be included when available.",
+            "type": "boolean"
+          },
+          "max_chars": {
+            "default": 12000,
+            "description": "Maximum content.text characters to return.",
+            "format": "int64",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "passage_ids": {
+            "description": "Passage IDs to return when selection is passage_ids.",
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "range": {
+            "$ref": "#/components/schemas/ContentRange",
+            "description": "Continuation read: return content starting at a character offset of the same document."
+          },
+          "selection": {
+            "default": "query_relevant",
+            "description": "Content selection strategy.",
+            "enum": [
+              "none",
+              "query_relevant",
+              "top_passages",
+              "passage_ids",
+              "full_document"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "DocumentProvenance": {
+        "additionalProperties": false,
+        "properties": {
+          "capture_id": {
+            "type": "string"
+          },
+          "capture_time": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "capture_id",
+          "capture_time"
+        ],
+        "type": "object"
+      },
+      "DocumentResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "$schema": {
+            "description": "A URL to the JSON Schema for this object.",
+            "examples": [
+              "https://search-api-staging-779189860552.europe-west1.run.app/DocumentResponse.json"
+            ],
+            "format": "uri",
+            "readOnly": true,
+            "type": "string"
+          },
+          "access": {
+            "$ref": "#/components/schemas/Access"
+          },
+          "capture_history": {
+            "items": {
+              "$ref": "#/components/schemas/CaptureHistoryEntry"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "content": {
+            "$ref": "#/components/schemas/DocumentContent"
+          },
+          "doc": {
+            "$ref": "#/components/schemas/Document"
+          },
+          "passages": {
+            "items": {
+              "$ref": "#/components/schemas/Passage"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/DocumentProvenance"
+          },
+          "request_id": {
+            "type": "string"
+          },
+          "session_id": {
+            "type": "string"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/Usage"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/Warning"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "request_id",
+          "session_id",
+          "access",
+          "doc"
+        ],
+        "type": "object"
+      },
+      "ErrorBody": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "description": "Stable machine-readable error code.",
+            "type": "string"
+          },
+          "details": {
+            "additionalProperties": {},
+            "description": "Optional structured error details.",
+            "type": "object"
+          },
+          "message": {
+            "description": "Human-readable error message.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "type": "object"
+      },
+      "ErrorEnvelope": {
+        "additionalProperties": false,
+        "properties": {
+          "$schema": {
+            "description": "A URL to the JSON Schema for this object.",
+            "examples": [
+              "https://search-api-staging-779189860552.europe-west1.run.app/ErrorEnvelope.json"
+            ],
+            "format": "uri",
+            "readOnly": true,
+            "type": "string"
+          },
+          "error": {
+            "$ref": "#/components/schemas/ErrorBody",
+            "description": "Error details."
+          },
+          "request_id": {
+            "description": "Server request identifier.",
+            "type": "string"
+          },
+          "type": {
+            "description": "Envelope discriminator.",
+            "enum": [
+              "error"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "request_id",
+          "error"
+        ],
+        "type": "object"
+      },
+      "FeedbackAgentContext": {
+        "additionalProperties": false,
+        "properties": {
+          "client_model": {
+            "description": "Calling model identifier.",
+            "type": "string"
+          },
+          "task_type": {
+            "description": "Agent task type or evaluation bucket.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "FeedbackResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "$schema": {
+            "description": "A URL to the JSON Schema for this object.",
+            "examples": [
+              "https://search-api-staging-779189860552.europe-west1.run.app/FeedbackResponse.json"
+            ],
+            "format": "uri",
+            "readOnly": true,
+            "type": "string"
+          },
+          "accepted": {
+            "type": "boolean"
+          },
+          "access": {
+            "$ref": "#/components/schemas/Access"
+          },
+          "feedback_id": {
+            "type": "string"
+          },
+          "request_id": {
+            "type": "string"
+          },
+          "session_id": {
+            "type": "string"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/Usage"
+          }
+        },
+        "required": [
+          "request_id",
+          "feedback_id",
+          "session_id",
+          "access",
+          "accepted"
+        ],
+        "type": "object"
+      },
+      "Passage": {
+        "additionalProperties": false,
+        "properties": {
+          "char_end": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "char_start": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "doc_id": {
+            "type": "string"
+          },
+          "ordinal": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "passage_id": {
+            "type": "string"
+          },
+          "section_heading": {
+            "type": "string"
+          },
+          "section_path": {
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "passage_id",
+          "doc_id",
+          "ordinal",
+          "text"
+        ],
+        "type": "object"
+      },
+      "Ranking": {
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "type": "string"
+          },
+          "ranker_version": {
+            "type": "string"
+          },
+          "score_scope": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "mode",
+          "ranker_version",
+          "score_scope"
+        ],
+        "type": "object"
+      },
+      "RateLimit": {
+        "additionalProperties": false,
+        "properties": {
+          "limit_rps": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "remaining": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "reset_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "limit_rps",
+          "remaining",
+          "reset_at"
+        ],
+        "type": "object"
+      },
+      "ResponseBudget": {
+        "additionalProperties": false,
+        "properties": {
+          "max_chars_total": {
+            "description": "Maximum serialized response size in characters. Roughly 4 characters per token.",
+            "format": "int64",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "on_exceed": {
+            "default": "shed",
+            "description": "What to do when the budget binds: shed payload in the documented order, or fail with response_too_large.",
+            "enum": [
+              "shed",
+              "error"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ResponseShape": {
+        "additionalProperties": false,
+        "properties": {
+          "budget": {
+            "$ref": "#/components/schemas/ResponseBudget",
+            "description": "Total serialized response budget in characters with deterministic shedding."
+          },
+          "verbosity": {
+            "default": "standard",
+            "description": "Field preset: ids_only (rank, doc_id, url, title), compact (adds snippet, score, key dates), standard (today's default), full (adds provenance).",
+            "enum": [
+              "ids_only",
+              "compact",
+              "standard",
+              "full"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "SearchResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "$schema": {
+            "description": "A URL to the JSON Schema for this object.",
+            "examples": [
+              "https://search-api-staging-779189860552.europe-west1.run.app/SearchResponse.json"
+            ],
+            "format": "uri",
+            "readOnly": true,
+            "type": "string"
+          },
+          "access": {
+            "$ref": "#/components/schemas/Access"
+          },
+          "ranking": {
+            "$ref": "#/components/schemas/Ranking"
+          },
+          "request_id": {
+            "type": "string"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/SearchResult"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "search_id": {
+            "type": "string"
+          },
+          "session_id": {
+            "type": "string"
+          },
+          "truncated": {
+            "type": "boolean"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/Usage"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/Warning"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "request_id",
+          "search_id",
+          "session_id",
+          "results"
+        ],
+        "type": "object"
+      },
+      "SearchResult": {
+        "additionalProperties": false,
+        "properties": {
+          "canonical_url": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "doc_id": {
+            "type": "string"
+          },
+          "metadata": {
+            "$ref": "#/components/schemas/SearchResultMetadata"
+          },
+          "passages": {
+            "items": {
+              "$ref": "#/components/schemas/Passage"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/DocumentProvenance"
+          },
+          "rank": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "score": {
+            "$ref": "#/components/schemas/SearchScore"
+          },
+          "snippet": {
+            "type": "string"
+          },
+          "source_url": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "rank",
+          "doc_id",
+          "canonical_url"
+        ],
+        "type": "object"
+      },
+      "SearchResultMetadata": {
+        "additionalProperties": false,
+        "properties": {
+          "content_digest": {
+            "type": "string"
+          },
+          "extracted_at": {
+            "type": "string"
+          },
+          "first_seen_at": {
+            "type": "string"
+          },
+          "last_crawled_at": {
+            "type": "string"
+          },
+          "last_seen_at": {
+            "type": "string"
+          },
+          "published_at": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "SearchScore": {
+        "additionalProperties": false,
+        "properties": {
+          "value": {
+            "format": "double",
+            "type": "number"
+          }
+        },
+        "required": [
+          "value"
+        ],
+        "type": "object"
+      },
+      "Usage": {
+        "additionalProperties": false,
+        "properties": {
+          "approx_tokens": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "bytes_returned": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "requests": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "requests",
+          "bytes_returned",
+          "approx_tokens"
+        ],
+        "type": "object"
+      },
+      "Warning": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "details": {
+            "additionalProperties": {},
+            "type": "object"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "bearerApiKey": {
+        "bearerFormat": "API key",
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "description": "Local implementation of the v1 search, document, feedback, and internal operational APIs.",
+    "title": "Agent Search API (Public)",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/v1/document": {
+      "post": {
+        "operationId": "get-document",
+        "parameters": [
+          {
+            "description": "Optional client session identifier.",
+            "in": "header",
+            "name": "X-Session-ID",
+            "schema": {
+              "description": "Optional client session identifier.",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "canonical_url": {
+                    "description": "Canonical URL lookup key. Either doc_id or canonical_url is required.",
+                    "format": "uri",
+                    "type": "string"
+                  },
+                  "content": {
+                    "$ref": "#/components/schemas/DocumentContentRequest",
+                    "description": "Controls for returned document content."
+                  },
+                  "debug": {
+                    "additionalProperties": {},
+                    "description": "Optional debug controls for internal evaluation.",
+                    "type": "object"
+                  },
+                  "doc_id": {
+                    "description": "Canonical document identifier. Either doc_id or canonical_url is required.",
+                    "examples": [
+                      "0c944fa8-4c8f-4f48-9b08-0fb2fd3438ec"
+                    ],
+                    "format": "uuid",
+                    "type": "string"
+                  },
+                  "include": {
+                    "description": "Optional document sections to include.",
+                    "items": {
+                      "enum": [
+                        "metadata",
+                        "passages",
+                        "capture_history",
+                        "content"
+                      ],
+                      "type": "string"
+                    },
+                    "type": [
+                      "array",
+                      "null"
+                    ]
+                  },
+                  "query": {
+                    "description": "Optional query context for passage selection.",
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentResponse"
+                }
+              }
+            },
+            "description": "Document payload."
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Validation error."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid API key."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "API key does not have the required scope."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Document or passage not found."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Rate limited."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal error."
+          }
+        },
+        "security": [
+          {
+            "bearerApiKey": []
+          }
+        ],
+        "summary": "Inspect one canonical document and retrieve selected content.",
+        "tags": [
+          "Documents"
+        ],
+        "x-audience": "public"
+      }
+    },
+    "/v1/feedback": {
+      "post": {
+        "operationId": "record-feedback",
+        "parameters": [
+          {
+            "description": "Optional client session identifier.",
+            "in": "header",
+            "name": "X-Session-ID",
+            "schema": {
+              "description": "Optional client session identifier.",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "agent_context": {
+                    "$ref": "#/components/schemas/FeedbackAgentContext",
+                    "description": "Optional calling-agent context."
+                  },
+                  "doc_id": {
+                    "description": "Document associated with the feedback event.",
+                    "format": "uuid",
+                    "type": "string"
+                  },
+                  "event_type": {
+                    "description": "Feedback event classification.",
+                    "enum": [
+                      "result_helpful",
+                      "result_not_helpful",
+                      "passage_used",
+                      "read_abandoned",
+                      "duplicate_result",
+                      "stale_result",
+                      "spam_or_low_quality",
+                      "missing_expected_source",
+                      "unsafe_or_policy_issue"
+                    ],
+                    "type": "string"
+                  },
+                  "notes": {
+                    "description": "Optional notes for human review or offline evaluation.",
+                    "type": "string"
+                  },
+                  "passage_id": {
+                    "description": "Passage associated with the feedback event.",
+                    "format": "uuid",
+                    "type": "string"
+                  },
+                  "query": {
+                    "description": "Query associated with the feedback event.",
+                    "type": "string"
+                  },
+                  "rank": {
+                    "description": "One-based result rank, when applicable.",
+                    "format": "int64",
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "search_id": {
+                    "description": "Search request identifier returned by /v1/search.",
+                    "format": "uuid",
+                    "type": "string"
+                  },
+                  "session_id": {
+                    "description": "Optional client session identifier.",
+                    "format": "uuid",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "event_type"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackResponse"
+                }
+              }
+            },
+            "description": "Feedback accepted."
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Validation error."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid API key."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "API key does not have the required scope."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Search or document target not found."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Rate limited."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal error."
+          }
+        },
+        "security": [
+          {
+            "bearerApiKey": []
+          }
+        ],
+        "summary": "Persist an agent or evaluation feedback event.",
+        "tags": [
+          "Feedback"
+        ],
+        "x-audience": "public"
+      }
+    },
+    "/v1/search": {
+      "post": {
+        "operationId": "search",
+        "parameters": [
+          {
+            "description": "Optional client session identifier.",
+            "in": "header",
+            "name": "X-Session-ID",
+            "schema": {
+              "description": "Optional client session identifier.",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "client_model": {
+                    "description": "Optional calling model identifier for analytics and tuning.",
+                    "type": "string"
+                  },
+                  "content": {
+                    "additionalProperties": {},
+                    "description": "Optional content-return controls.",
+                    "type": "object"
+                  },
+                  "debug": {
+                    "additionalProperties": {},
+                    "description": "Optional debug controls for internal evaluation.",
+                    "type": "object"
+                  },
+                  "filters": {
+                    "additionalProperties": {},
+                    "description": "Optional structured filters.",
+                    "type": "object"
+                  },
+                  "freshness_policy": {
+                    "additionalProperties": {},
+                    "description": "Optional freshness requirements for time-sensitive queries.",
+                    "type": "object"
+                  },
+                  "max_results": {
+                    "default": 10,
+                    "description": "Maximum number of ranked results to return.",
+                    "format": "int64",
+                    "maximum": 50,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "mode": {
+                    "default": "standard",
+                    "description": "Retrieval budget and ranking mode.",
+                    "enum": [
+                      "fast",
+                      "standard",
+                      "research"
+                    ],
+                    "type": "string"
+                  },
+                  "objective": {
+                    "description": "Optional task objective used by agents to shape retrieval.",
+                    "type": "string"
+                  },
+                  "query": {
+                    "description": "Original user or agent query.",
+                    "examples": [
+                      "linux kernel amd gpu suspend"
+                    ],
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "response": {
+                    "$ref": "#/components/schemas/ResponseShape",
+                    "description": "Optional response shaping: verbosity preset and serialized-size budget."
+                  },
+                  "search_queries": {
+                    "description": "Optional caller-provided query rewrites.",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": [
+                      "array",
+                      "null"
+                    ]
+                  },
+                  "session_id": {
+                    "description": "Optional client session identifier.",
+                    "format": "uuid",
+                    "type": "string"
+                  },
+                  "source_policy": {
+                    "additionalProperties": {},
+                    "description": "Optional source inclusion and exclusion policy.",
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "query"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            },
+            "description": "Search results."
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Validation error."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid API key."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "API key does not have the required scope."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Rate limited."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal error."
+          }
+        },
+        "security": [
+          {
+            "bearerApiKey": []
+          }
+        ],
+        "summary": "Run ranked retrieval over canonical documents and passages.",
+        "tags": [
+          "Search"
+        ],
+        "x-audience": "public"
+      }
+    }
+  },
+  "servers": [
+    {
+      "description": "Staging",
+      "url": "https://search-api-staging-779189860552.europe-west1.run.app"
+    },
+    {
+      "description": "Local development",
+      "url": "http://localhost:8080"
+    }
+  ],
+  "tags": [
+    {
+      "description": "Public search APIs.",
+      "name": "Search"
+    },
+    {
+      "description": "Public document inspection APIs.",
+      "name": "Documents"
+    },
+    {
+      "description": "Public feedback ingestion APIs.",
+      "name": "Feedback"
+    },
+    {
+      "description": "Internal health, readiness, and metrics APIs.",
+      "name": "Operations"
+    }
+  ]
+}

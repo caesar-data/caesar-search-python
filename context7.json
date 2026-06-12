@@ -1,0 +1,14 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "projectTitle": "caesar-search Python SDK",
+  "description": "Official Python SDK for the Caesar search API: web search with provenance for agents",
+  "folders": [],
+  "excludeFolders": ["spec", ".venv"],
+  "rules": [
+    "Instantiate Caesar() or AsyncCaesar(); CAESAR_API_KEY is read from the environment",
+    "Methods are search(), read(), feedback(); the search size parameter is max_results",
+    "Continue truncated reads with start_char instead of increasing max_chars",
+    "Catch AuthenticationError, RateLimitError, APIStatusError from caesar_search",
+    "Models are generated pydantic v2; fields are snake_case"
+  ]
+}
