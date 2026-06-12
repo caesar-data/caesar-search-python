@@ -215,6 +215,63 @@
         ],
         "type": "object"
       },
+      "DocumentRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "$schema": {
+            "description": "A URL to the JSON Schema for this object.",
+            "examples": [
+              "https://search-api-staging-779189860552.europe-west1.run.app/DocumentRequest.json"
+            ],
+            "format": "uri",
+            "readOnly": true,
+            "type": "string"
+          },
+          "canonical_url": {
+            "description": "Canonical URL lookup key. Either doc_id or canonical_url is required.",
+            "format": "uri",
+            "type": "string"
+          },
+          "content": {
+            "$ref": "#/components/schemas/DocumentContentRequest",
+            "description": "Controls for returned document content."
+          },
+          "debug": {
+            "additionalProperties": {},
+            "description": "Optional debug controls for internal evaluation.",
+            "type": "object"
+          },
+          "doc_id": {
+            "description": "Canonical document identifier. Either doc_id or canonical_url is required.",
+            "examples": [
+              "0c944fa8-4c8f-4f48-9b08-0fb2fd3438ec"
+            ],
+            "format": "uuid",
+            "type": "string"
+          },
+          "include": {
+            "description": "Optional document sections to include.",
+            "items": {
+              "enum": [
+                "metadata",
+                "passages",
+                "capture_history",
+                "content"
+              ],
+              "type": "string"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "query": {
+            "description": "Optional query context for passage selection.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "DocumentResponse": {
         "additionalProperties": false,
         "properties": {
@@ -354,6 +411,77 @@
             "type": "string"
           }
         },
+        "type": "object"
+      },
+      "FeedbackRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "$schema": {
+            "description": "A URL to the JSON Schema for this object.",
+            "examples": [
+              "https://search-api-staging-779189860552.europe-west1.run.app/FeedbackRequest.json"
+            ],
+            "format": "uri",
+            "readOnly": true,
+            "type": "string"
+          },
+          "agent_context": {
+            "$ref": "#/components/schemas/FeedbackAgentContext",
+            "description": "Optional calling-agent context."
+          },
+          "doc_id": {
+            "description": "Document associated with the feedback event.",
+            "format": "uuid",
+            "type": "string"
+          },
+          "event_type": {
+            "description": "Feedback event classification.",
+            "enum": [
+              "result_helpful",
+              "result_not_helpful",
+              "passage_used",
+              "read_abandoned",
+              "duplicate_result",
+              "stale_result",
+              "spam_or_low_quality",
+              "missing_expected_source",
+              "unsafe_or_policy_issue"
+            ],
+            "type": "string"
+          },
+          "notes": {
+            "description": "Optional notes for human review or offline evaluation.",
+            "type": "string"
+          },
+          "passage_id": {
+            "description": "Passage associated with the feedback event.",
+            "format": "uuid",
+            "type": "string"
+          },
+          "query": {
+            "description": "Query associated with the feedback event.",
+            "type": "string"
+          },
+          "rank": {
+            "description": "One-based result rank, when applicable.",
+            "format": "int64",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "search_id": {
+            "description": "Search request identifier returned by /v1/search.",
+            "format": "uuid",
+            "type": "string"
+          },
+          "session_id": {
+            "description": "Optional client session identifier.",
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "event_type"
+        ],
         "type": "object"
       },
       "FeedbackResponse": {
@@ -523,6 +651,102 @@
             "type": "string"
           }
         },
+        "type": "object"
+      },
+      "SearchRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "$schema": {
+            "description": "A URL to the JSON Schema for this object.",
+            "examples": [
+              "https://search-api-staging-779189860552.europe-west1.run.app/SearchRequest.json"
+            ],
+            "format": "uri",
+            "readOnly": true,
+            "type": "string"
+          },
+          "client_model": {
+            "description": "Optional calling model identifier for analytics and tuning.",
+            "type": "string"
+          },
+          "content": {
+            "additionalProperties": {},
+            "description": "Optional content-return controls.",
+            "type": "object"
+          },
+          "debug": {
+            "additionalProperties": {},
+            "description": "Optional debug controls for internal evaluation.",
+            "type": "object"
+          },
+          "filters": {
+            "additionalProperties": {},
+            "description": "Optional structured filters.",
+            "type": "object"
+          },
+          "freshness_policy": {
+            "additionalProperties": {},
+            "description": "Optional freshness requirements for time-sensitive queries.",
+            "type": "object"
+          },
+          "max_results": {
+            "default": 10,
+            "description": "Maximum number of ranked results to return.",
+            "format": "int64",
+            "maximum": 50,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "mode": {
+            "default": "standard",
+            "description": "Retrieval budget and ranking mode.",
+            "enum": [
+              "fast",
+              "standard",
+              "research"
+            ],
+            "type": "string"
+          },
+          "objective": {
+            "description": "Optional task objective used by agents to shape retrieval.",
+            "type": "string"
+          },
+          "query": {
+            "description": "Original user or agent query.",
+            "examples": [
+              "linux kernel amd gpu suspend"
+            ],
+            "minLength": 1,
+            "type": "string"
+          },
+          "response": {
+            "$ref": "#/components/schemas/ResponseShape",
+            "description": "Optional response shaping: verbosity preset and serialized-size budget."
+          },
+          "search_queries": {
+            "description": "Optional caller-provided query rewrites.",
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "session_id": {
+            "description": "Optional client session identifier.",
+            "format": "uuid",
+            "type": "string"
+          },
+          "source_policy": {
+            "additionalProperties": {},
+            "description": "Optional source inclusion and exclusion policy.",
+            "type": "object"
+          }
+        },
+        "required": [
+          "query"
+        ],
         "type": "object"
       },
       "SearchResponse": {
@@ -750,52 +974,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "additionalProperties": false,
-                "properties": {
-                  "canonical_url": {
-                    "description": "Canonical URL lookup key. Either doc_id or canonical_url is required.",
-                    "format": "uri",
-                    "type": "string"
-                  },
-                  "content": {
-                    "$ref": "#/components/schemas/DocumentContentRequest",
-                    "description": "Controls for returned document content."
-                  },
-                  "debug": {
-                    "additionalProperties": {},
-                    "description": "Optional debug controls for internal evaluation.",
-                    "type": "object"
-                  },
-                  "doc_id": {
-                    "description": "Canonical document identifier. Either doc_id or canonical_url is required.",
-                    "examples": [
-                      "0c944fa8-4c8f-4f48-9b08-0fb2fd3438ec"
-                    ],
-                    "format": "uuid",
-                    "type": "string"
-                  },
-                  "include": {
-                    "description": "Optional document sections to include.",
-                    "items": {
-                      "enum": [
-                        "metadata",
-                        "passages",
-                        "capture_history",
-                        "content"
-                      ],
-                      "type": "string"
-                    },
-                    "type": [
-                      "array",
-                      "null"
-                    ]
-                  },
-                  "query": {
-                    "description": "Optional query context for passage selection.",
-                    "type": "string"
-                  }
-                },
-                "type": "object"
+                "$ref": "#/components/schemas/DocumentRequest"
               }
             }
           },
@@ -903,66 +1082,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "additionalProperties": false,
-                "properties": {
-                  "agent_context": {
-                    "$ref": "#/components/schemas/FeedbackAgentContext",
-                    "description": "Optional calling-agent context."
-                  },
-                  "doc_id": {
-                    "description": "Document associated with the feedback event.",
-                    "format": "uuid",
-                    "type": "string"
-                  },
-                  "event_type": {
-                    "description": "Feedback event classification.",
-                    "enum": [
-                      "result_helpful",
-                      "result_not_helpful",
-                      "passage_used",
-                      "read_abandoned",
-                      "duplicate_result",
-                      "stale_result",
-                      "spam_or_low_quality",
-                      "missing_expected_source",
-                      "unsafe_or_policy_issue"
-                    ],
-                    "type": "string"
-                  },
-                  "notes": {
-                    "description": "Optional notes for human review or offline evaluation.",
-                    "type": "string"
-                  },
-                  "passage_id": {
-                    "description": "Passage associated with the feedback event.",
-                    "format": "uuid",
-                    "type": "string"
-                  },
-                  "query": {
-                    "description": "Query associated with the feedback event.",
-                    "type": "string"
-                  },
-                  "rank": {
-                    "description": "One-based result rank, when applicable.",
-                    "format": "int64",
-                    "minimum": 1,
-                    "type": "integer"
-                  },
-                  "search_id": {
-                    "description": "Search request identifier returned by /v1/search.",
-                    "format": "uuid",
-                    "type": "string"
-                  },
-                  "session_id": {
-                    "description": "Optional client session identifier.",
-                    "format": "uuid",
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "event_type"
-                ],
-                "type": "object"
+                "$ref": "#/components/schemas/FeedbackRequest"
               }
             }
           },
@@ -1070,91 +1190,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "additionalProperties": false,
-                "properties": {
-                  "client_model": {
-                    "description": "Optional calling model identifier for analytics and tuning.",
-                    "type": "string"
-                  },
-                  "content": {
-                    "additionalProperties": {},
-                    "description": "Optional content-return controls.",
-                    "type": "object"
-                  },
-                  "debug": {
-                    "additionalProperties": {},
-                    "description": "Optional debug controls for internal evaluation.",
-                    "type": "object"
-                  },
-                  "filters": {
-                    "additionalProperties": {},
-                    "description": "Optional structured filters.",
-                    "type": "object"
-                  },
-                  "freshness_policy": {
-                    "additionalProperties": {},
-                    "description": "Optional freshness requirements for time-sensitive queries.",
-                    "type": "object"
-                  },
-                  "max_results": {
-                    "default": 10,
-                    "description": "Maximum number of ranked results to return.",
-                    "format": "int64",
-                    "maximum": 50,
-                    "minimum": 1,
-                    "type": "integer"
-                  },
-                  "mode": {
-                    "default": "standard",
-                    "description": "Retrieval budget and ranking mode.",
-                    "enum": [
-                      "fast",
-                      "standard",
-                      "research"
-                    ],
-                    "type": "string"
-                  },
-                  "objective": {
-                    "description": "Optional task objective used by agents to shape retrieval.",
-                    "type": "string"
-                  },
-                  "query": {
-                    "description": "Original user or agent query.",
-                    "examples": [
-                      "linux kernel amd gpu suspend"
-                    ],
-                    "minLength": 1,
-                    "type": "string"
-                  },
-                  "response": {
-                    "$ref": "#/components/schemas/ResponseShape",
-                    "description": "Optional response shaping: verbosity preset and serialized-size budget."
-                  },
-                  "search_queries": {
-                    "description": "Optional caller-provided query rewrites.",
-                    "items": {
-                      "type": "string"
-                    },
-                    "type": [
-                      "array",
-                      "null"
-                    ]
-                  },
-                  "session_id": {
-                    "description": "Optional client session identifier.",
-                    "format": "uuid",
-                    "type": "string"
-                  },
-                  "source_policy": {
-                    "additionalProperties": {},
-                    "description": "Optional source inclusion and exclusion policy.",
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "query"
-                ],
-                "type": "object"
+                "$ref": "#/components/schemas/SearchRequest"
               }
             }
           },

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from enum import Enum
 from typing import Any
+from uuid import UUID
 
 from pydantic import AnyUrl, BaseModel, ConfigDict, Field
 
@@ -125,6 +126,53 @@ class DocumentProvenance(BaseModel):
     capture_time: str
 
 
+class IncludeEnum(Enum):
+    metadata = "metadata"
+    passages = "passages"
+    capture_history = "capture_history"
+    content = "content"
+
+
+class DocumentRequest(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    field_schema: AnyUrl | None = Field(
+        None,
+        alias="$schema",
+        examples=[
+            "https://search-api-staging-779189860552.europe-west1.run.app/DocumentRequest.json"
+        ],
+    )
+    """
+    A URL to the JSON Schema for this object.
+    """
+    canonical_url: AnyUrl | None = None
+    """
+    Canonical URL lookup key. Either doc_id or canonical_url is required.
+    """
+    content: DocumentContentRequest | None = None
+    """
+    Controls for returned document content.
+    """
+    debug: dict[str, Any] | None = None
+    """
+    Optional debug controls for internal evaluation.
+    """
+    doc_id: UUID | None = Field(None, examples=["0c944fa8-4c8f-4f48-9b08-0fb2fd3438ec"])
+    """
+    Canonical document identifier. Either doc_id or canonical_url is required.
+    """
+    include: list[IncludeEnum] | None = None
+    """
+    Optional document sections to include.
+    """
+    query: str | None = None
+    """
+    Optional query context for passage selection.
+    """
+
+
 class ErrorBody(BaseModel):
     model_config = ConfigDict(
         extra="allow",
@@ -190,6 +238,74 @@ class FeedbackAgentContext(BaseModel):
     task_type: str | None = None
     """
     Agent task type or evaluation bucket.
+    """
+
+
+class EventType(Enum):
+    """
+    Feedback event classification.
+    """
+
+    result_helpful = "result_helpful"
+    result_not_helpful = "result_not_helpful"
+    passage_used = "passage_used"
+    read_abandoned = "read_abandoned"
+    duplicate_result = "duplicate_result"
+    stale_result = "stale_result"
+    spam_or_low_quality = "spam_or_low_quality"
+    missing_expected_source = "missing_expected_source"
+    unsafe_or_policy_issue = "unsafe_or_policy_issue"
+
+
+class FeedbackRequest(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    field_schema: AnyUrl | None = Field(
+        None,
+        alias="$schema",
+        examples=[
+            "https://search-api-staging-779189860552.europe-west1.run.app/FeedbackRequest.json"
+        ],
+    )
+    """
+    A URL to the JSON Schema for this object.
+    """
+    agent_context: FeedbackAgentContext | None = None
+    """
+    Optional calling-agent context.
+    """
+    doc_id: UUID | None = None
+    """
+    Document associated with the feedback event.
+    """
+    event_type: EventType
+    """
+    Feedback event classification.
+    """
+    notes: str | None = None
+    """
+    Optional notes for human review or offline evaluation.
+    """
+    passage_id: UUID | None = None
+    """
+    Passage associated with the feedback event.
+    """
+    query: str | None = None
+    """
+    Query associated with the feedback event.
+    """
+    rank: int | None = Field(None, ge=1)
+    """
+    One-based result rank, when applicable.
+    """
+    search_id: UUID | None = None
+    """
+    Search request identifier returned by /v1/search.
+    """
+    session_id: UUID | None = None
+    """
+    Optional client session identifier.
     """
 
 
@@ -270,6 +386,84 @@ class ResponseShape(BaseModel):
     verbosity: Verbosity | None = "standard"
     """
     Field preset: ids_only (rank, doc_id, url, title), compact (adds snippet, score, key dates), standard (today's default), full (adds provenance).
+    """
+
+
+class Mode(Enum):
+    """
+    Retrieval budget and ranking mode.
+    """
+
+    fast = "fast"
+    standard = "standard"
+    research = "research"
+
+
+class SearchRequest(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    field_schema: AnyUrl | None = Field(
+        None,
+        alias="$schema",
+        examples=[
+            "https://search-api-staging-779189860552.europe-west1.run.app/SearchRequest.json"
+        ],
+    )
+    """
+    A URL to the JSON Schema for this object.
+    """
+    client_model: str | None = None
+    """
+    Optional calling model identifier for analytics and tuning.
+    """
+    content: dict[str, Any] | None = None
+    """
+    Optional content-return controls.
+    """
+    debug: dict[str, Any] | None = None
+    """
+    Optional debug controls for internal evaluation.
+    """
+    filters: dict[str, Any] | None = None
+    """
+    Optional structured filters.
+    """
+    freshness_policy: dict[str, Any] | None = None
+    """
+    Optional freshness requirements for time-sensitive queries.
+    """
+    max_results: int | None = Field(10, ge=1, le=50)
+    """
+    Maximum number of ranked results to return.
+    """
+    mode: Mode | None = "standard"
+    """
+    Retrieval budget and ranking mode.
+    """
+    objective: str | None = None
+    """
+    Optional task objective used by agents to shape retrieval.
+    """
+    query: str = Field(..., examples=["linux kernel amd gpu suspend"], min_length=1)
+    """
+    Original user or agent query.
+    """
+    response: ResponseShape | None = None
+    """
+    Optional response shaping: verbosity preset and serialized-size budget.
+    """
+    search_queries: list[str] | None = None
+    """
+    Optional caller-provided query rewrites.
+    """
+    session_id: UUID | None = None
+    """
+    Optional client session identifier.
+    """
+    source_policy: dict[str, Any] | None = None
+    """
+    Optional source inclusion and exclusion policy.
     """
 
 
