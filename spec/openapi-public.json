@@ -958,6 +958,7 @@
   "paths": {
     "/v1/document": {
       "post": {
+        "description": "Inspect one canonical document and retrieve selected content.",
         "operationId": "get-document",
         "parameters": [
           {
@@ -1029,7 +1030,7 @@
                 }
               }
             },
-            "description": "Document or passage not found."
+            "description": "Document not found."
           },
           "429": {
             "content": {
@@ -1050,6 +1051,26 @@
               }
             },
             "description": "Internal error."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Search infrastructure unreachable."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Search infrastructure unavailable."
           }
         },
         "security": [
@@ -1057,7 +1078,7 @@
             "bearerApiKey": []
           }
         ],
-        "summary": "Inspect one canonical document and retrieve selected content.",
+        "summary": "Get a document",
         "tags": [
           "Documents"
         ],
@@ -1066,6 +1087,7 @@
     },
     "/v1/feedback": {
       "post": {
+        "description": "Persist an agent or evaluation feedback event.",
         "operationId": "record-feedback",
         "parameters": [
           {
@@ -1165,7 +1187,7 @@
             "bearerApiKey": []
           }
         ],
-        "summary": "Persist an agent or evaluation feedback event.",
+        "summary": "Record feedback",
         "tags": [
           "Feedback"
         ],
@@ -1174,6 +1196,7 @@
     },
     "/v1/search": {
       "post": {
+        "description": "Run ranked retrieval over canonical documents and passages.",
         "operationId": "search",
         "parameters": [
           {
@@ -1256,6 +1279,26 @@
               }
             },
             "description": "Internal error."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Search infrastructure unreachable."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Search infrastructure unavailable."
           }
         },
         "security": [
@@ -1263,7 +1306,7 @@
             "bearerApiKey": []
           }
         ],
-        "summary": "Run ranked retrieval over canonical documents and passages.",
+        "summary": "Search",
         "tags": [
           "Search"
         ],
