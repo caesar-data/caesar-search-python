@@ -158,9 +158,7 @@ class ErrorEnvelope(BaseModel):
     field_schema: AnyUrl | None = Field(
         None,
         alias="$schema",
-        examples=[
-            "https://search-api-staging-779189860552.europe-west1.run.app/ErrorEnvelope.json"
-        ],
+        examples=["https://search-api-staging-779189860552.europe-west1.run.app/ErrorEnvelope.json"],
     )
     """
     A URL to the JSON Schema for this object.
@@ -325,9 +323,7 @@ class DocumentResponse(BaseModel):
     field_schema: AnyUrl | None = Field(
         None,
         alias="$schema",
-        examples=[
-            "https://search-api-staging-779189860552.europe-west1.run.app/DocumentResponse.json"
-        ],
+        examples=["https://search-api-staging-779189860552.europe-west1.run.app/DocumentResponse.json"],
     )
     """
     A URL to the JSON Schema for this object.
@@ -351,9 +347,7 @@ class FeedbackResponse(BaseModel):
     field_schema: AnyUrl | None = Field(
         None,
         alias="$schema",
-        examples=[
-            "https://search-api-staging-779189860552.europe-west1.run.app/FeedbackResponse.json"
-        ],
+        examples=["https://search-api-staging-779189860552.europe-west1.run.app/FeedbackResponse.json"],
     )
     """
     A URL to the JSON Schema for this object.
@@ -390,9 +384,7 @@ class SearchResponse(BaseModel):
     field_schema: AnyUrl | None = Field(
         None,
         alias="$schema",
-        examples=[
-            "https://search-api-staging-779189860552.europe-west1.run.app/SearchResponse.json"
-        ],
+        examples=["https://search-api-staging-779189860552.europe-west1.run.app/SearchResponse.json"],
     )
     """
     A URL to the JSON Schema for this object.
