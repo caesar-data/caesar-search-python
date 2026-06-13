@@ -69,7 +69,7 @@ class DocumentContent(BaseModel):
 
 class Format(Enum):
     """
-    Returned content format.
+    Returned content format: markdown (default) preserves document structure (headings, lists, code blocks); text is plain text.
     """
 
     text = "text"
@@ -78,7 +78,7 @@ class Format(Enum):
 
 class Selection(Enum):
     """
-    Content selection strategy.
+    How content.text is chosen: query_relevant (default) returns the passages most relevant to query; top_passages returns the document's leading passages; passage_ids returns exactly content.passage_ids; full_document returns the extracted text up to max_chars; none returns no content body.
     """
 
     none = "none"
@@ -94,19 +94,19 @@ class DocumentContentRequest(BaseModel):
     )
     format: Format | None = "markdown"
     """
-    Returned content format.
+    Returned content format: markdown (default) preserves document structure (headings, lists, code blocks); text is plain text.
     """
     include_offsets: bool | None = None
     """
-    Whether passage offsets should be included when available.
+    When true, passages carry char_start/char_end offsets into the full extracted text when available, for character-precise citation.
     """
     max_chars: int | None = Field(12000, ge=1)
     """
-    Maximum content.text characters to return.
+    Maximum content.text characters to return. Longer documents set content.truncated true; continue with content.range.start_char instead of retrying with a larger cap.
     """
     passage_ids: list[str] | None = None
     """
-    Passage IDs to return when selection is passage_ids.
+    Passage identifiers to return when selection is passage_ids, from a search result's passages or a previous read.
     """
     range: ContentRange | None = None
     """
@@ -114,7 +114,7 @@ class DocumentContentRequest(BaseModel):
     """
     selection: Selection | None = "query_relevant"
     """
-    Content selection strategy.
+    How content.text is chosen: query_relevant (default) returns the passages most relevant to query; top_passages returns the document's leading passages; passage_ids returns exactly content.passage_ids; full_document returns the extracted text up to max_chars; none returns no content body.
     """
 
 
@@ -149,27 +149,27 @@ class DocumentRequest(BaseModel):
     """
     canonical_url: AnyUrl | None = None
     """
-    Canonical URL lookup key. Either doc_id or canonical_url is required.
+    Canonical URL from a result's canonical_url; lookup alternative to doc_id. Either doc_id or canonical_url is required.
     """
     content: DocumentContentRequest | None = None
     """
-    Controls for returned document content.
+    Controls for returned document content: selection strategy, format, size cap, and continuation range.
     """
     debug: dict[str, Any] | None = None
     """
-    Optional debug controls for internal evaluation.
+    Reserved for internal evaluation harnesses; ignored for public callers.
     """
     doc_id: UUID | None = Field(None, examples=["0c944fa8-4c8f-4f48-9b08-0fb2fd3438ec"])
     """
-    Canonical document identifier. Either doc_id or canonical_url is required.
+    Canonical document identifier (UUID) from a search result's doc_id; stable across searches and recrawls. Either doc_id or canonical_url is required.
     """
     include: list[IncludeEnum] | None = None
     """
-    Optional document sections to include.
+    Sections to return. Omit it for everything available; otherwise an allowlist of passages, capture_history, and content (document metadata is always returned - send just metadata for a metadata-only read).
     """
     query: str | None = None
     """
-    Optional query context for passage selection.
+    Query context for passage selection: with content.selection query_relevant, content and passages are chosen for relevance to this text.
     """
 
 
@@ -237,13 +237,13 @@ class FeedbackAgentContext(BaseModel):
     """
     task_type: str | None = None
     """
-    Agent task type or evaluation bucket.
+    Agent task type or evaluation bucket (e.g. 'coding' or 'research').
     """
 
 
 class EventType(Enum):
     """
-    Feedback event classification.
+    What happened: result_helpful / result_not_helpful (the result did or did not advance the task), passage_used (a passage was used or cited), read_abandoned (opened but abandoned), duplicate_result, stale_result (outdated content), spam_or_low_quality, missing_expected_source (a source you expected did not appear), unsafe_or_policy_issue.
     """
 
     result_helpful = "result_helpful"
@@ -273,39 +273,39 @@ class FeedbackRequest(BaseModel):
     """
     agent_context: FeedbackAgentContext | None = None
     """
-    Optional calling-agent context.
+    Optional calling-agent context for slicing feedback in evaluation.
     """
     doc_id: UUID | None = None
     """
-    Document associated with the feedback event.
+    Document the event concerns, from the result's doc_id.
     """
     event_type: EventType
     """
-    Feedback event classification.
+    What happened: result_helpful / result_not_helpful (the result did or did not advance the task), passage_used (a passage was used or cited), read_abandoned (opened but abandoned), duplicate_result, stale_result (outdated content), spam_or_low_quality, missing_expected_source (a source you expected did not appear), unsafe_or_policy_issue.
     """
     notes: str | None = None
     """
-    Optional notes for human review or offline evaluation.
+    Free-text context, recorded for human review and offline evaluation.
     """
     passage_id: UUID | None = None
     """
-    Passage associated with the feedback event.
+    Specific passage the event concerns, from passages[].passage_id; most useful with passage_used.
     """
     query: str | None = None
     """
-    Query associated with the feedback event.
+    Query text the event relates to, useful when no search_id is available.
     """
     rank: int | None = Field(None, ge=1)
     """
-    One-based result rank, when applicable.
+    One-based position the result had in the ranked list.
     """
     search_id: UUID | None = None
     """
-    Search request identifier returned by /v1/search.
+    The search_id returned by /v1/search. Ties feedback to the exact ranked list that produced the result, so ranking learns from the right context.
     """
     session_id: UUID | None = None
     """
-    Optional client session identifier.
+    Session the event belongs to (UUID), matching session_id from earlier responses.
     """
 
 
@@ -343,7 +343,7 @@ class RateLimit(BaseModel):
 
 class OnExceed(Enum):
     """
-    What to do when the budget binds: shed payload in the documented order, or fail with response_too_large.
+    What to do when the budget binds: shed (default) trims in a fixed order - passages, snippet tails, preset extras, then tail results, never below one result - and sets truncated plus a response_truncated warning; error fails with response_too_large instead.
     """
 
     shed = "shed"
@@ -356,11 +356,11 @@ class ResponseBudget(BaseModel):
     )
     max_chars_total: int | None = Field(None, ge=1)
     """
-    Maximum serialized response size in characters. Roughly 4 characters per token.
+    Maximum serialized response size in characters (roughly 4 characters per token, so 2000 is about 500 tokens).
     """
     on_exceed: OnExceed | None = "shed"
     """
-    What to do when the budget binds: shed payload in the documented order, or fail with response_too_large.
+    What to do when the budget binds: shed (default) trims in a fixed order - passages, snippet tails, preset extras, then tail results, never below one result - and sets truncated plus a response_truncated warning; error fails with response_too_large instead.
     """
 
 
@@ -391,7 +391,7 @@ class ResponseShape(BaseModel):
 
 class Mode(Enum):
     """
-    Retrieval budget and ranking mode.
+    Retrieval budget and ranking mode: fast skips the reranking stage for the lowest latency; standard (default) and research rerank results, with research spending the largest retrieval budget.
     """
 
     fast = "fast"
@@ -415,39 +415,39 @@ class SearchRequest(BaseModel):
     """
     client_model: str | None = None
     """
-    Optional calling model identifier for analytics and tuning.
+    Calling model identifier, recorded for analytics and ranking tuning.
     """
     content: dict[str, Any] | None = None
     """
-    Optional content-return controls.
+    Accepted for forward compatibility; no effect today. /v1/search returns snippets and passages only - read a result in full with /v1/document.
     """
     debug: dict[str, Any] | None = None
     """
-    Optional debug controls for internal evaluation.
+    Reserved for internal evaluation harnesses; ignored for public callers.
     """
     filters: dict[str, Any] | None = None
     """
-    Optional structured filters.
+    Structured filters. Keys: country (two-letter code such as 'us' or 'de', scoping results to a market), language (two-letter code such as 'en'), exact_match (boolean; quotes the query so the index matches it verbatim).
     """
     freshness_policy: dict[str, Any] | None = None
     """
-    Optional freshness requirements for time-sensitive queries.
+    Recency requirements. Keys: published_after (RFC 3339 timestamp or YYYY-MM-DD date; only content published after it) and freshness (coarse window code pd, pw, pm, or py for past day, week, month, or year; ignored when published_after is set).
     """
     max_results: int | None = Field(10, ge=1, le=50)
     """
-    Maximum number of ranked results to return.
+    Maximum number of ranked results to return. The response carries fewer when the index has fewer matches.
     """
     mode: Mode | None = "standard"
     """
-    Retrieval budget and ranking mode.
+    Retrieval budget and ranking mode: fast skips the reranking stage for the lowest latency; standard (default) and research rerank results, with research spending the largest retrieval budget.
     """
     objective: str | None = None
     """
-    Optional task objective used by agents to shape retrieval.
+    What the search is for, in plain language (e.g. 'find the canonical migration guide to cite'). Recorded for ranking evaluation; does not change retrieval today.
     """
     query: str = Field(..., examples=["linux kernel amd gpu suspend"], min_length=1)
     """
-    Original user or agent query.
+    The search query, phrased as the user or agent would ask it. Drives ranking and passage selection even when search_queries supplies a rewrite.
     """
     response: ResponseShape | None = None
     """
@@ -455,15 +455,15 @@ class SearchRequest(BaseModel):
     """
     search_queries: list[str] | None = None
     """
-    Optional caller-provided query rewrites.
+    Caller-provided query rewrites. The first entry replaces query as the text sent to the search index; query still drives reranking and passage selection. All entries are visible to the server-side query rewriter.
     """
     session_id: UUID | None = None
     """
-    Optional client session identifier.
+    Client session identifier (UUID). Groups related search, document, and feedback calls; equivalent to the X-Session-ID header. When omitted, the server generates one and echoes it back as session_id.
     """
     source_policy: dict[str, Any] | None = None
     """
-    Optional source inclusion and exclusion policy.
+    Domain allow/deny policy. Keys: include_domains (array of domains; with require_domain_match true, results outside them are dropped, and a single entry is also sent to the index as a site: operator), exclude_domains (array of domains whose results are always dropped), require_domain_match (boolean). Domains match their subdomains; a leading www. is ignored.
     """
 
 
