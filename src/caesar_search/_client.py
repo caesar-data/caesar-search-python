@@ -55,7 +55,6 @@ def _search_body(
     *,
     mode: str | None,
     max_results: int | None,
-    objective: str | None,
     session_id: str | None,
     verbosity: str | None,
     max_chars_total: int | None,
@@ -66,8 +65,6 @@ def _search_body(
         body["mode"] = mode
     if max_results is not None:
         body["max_results"] = max_results
-    if objective is not None:
-        body["objective"] = objective
     if session_id is not None:
         body["session_id"] = session_id
     response_shape: dict[str, Any] = {}
@@ -191,7 +188,6 @@ class Caesar:
         *,
         mode: str | None = None,
         max_results: int | None = None,
-        objective: str | None = None,
         session_id: str | None = None,
         verbosity: str | None = None,
         max_chars_total: int | None = None,
@@ -202,7 +198,6 @@ class Caesar:
             query,
             mode=mode,
             max_results=max_results,
-            objective=objective,
             session_id=session_id,
             verbosity=verbosity,
             max_chars_total=max_chars_total,
@@ -317,7 +312,6 @@ class _RawResponses:
             query,
             mode=kwargs.pop("mode", None),
             max_results=kwargs.pop("max_results", None),
-            objective=kwargs.pop("objective", None),
             session_id=kwargs.pop("session_id", None),
             verbosity=kwargs.pop("verbosity", None),
             max_chars_total=kwargs.pop("max_chars_total", None),
@@ -375,7 +369,6 @@ class AsyncCaesar:
         *,
         mode: str | None = None,
         max_results: int | None = None,
-        objective: str | None = None,
         session_id: str | None = None,
         verbosity: str | None = None,
         max_chars_total: int | None = None,
@@ -385,7 +378,6 @@ class AsyncCaesar:
             query,
             mode=mode,
             max_results=max_results,
-            objective=objective,
             session_id=session_id,
             verbosity=verbosity,
             max_chars_total=max_chars_total,

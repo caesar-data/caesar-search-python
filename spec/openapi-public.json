@@ -669,16 +669,6 @@
             "description": "Calling model identifier, recorded for analytics and ranking tuning.",
             "type": "string"
           },
-          "content": {
-            "additionalProperties": {},
-            "description": "Accepted for forward compatibility; no effect today. /v1/search returns snippets and passages only - read a result in full with /v1/document.",
-            "type": "object"
-          },
-          "debug": {
-            "additionalProperties": {},
-            "description": "Reserved for internal evaluation harnesses; ignored for public callers.",
-            "type": "object"
-          },
           "filters": {
             "additionalProperties": {},
             "description": "Structured filters. Keys: country (two-letter code such as 'us' or 'de', scoping results to a market), language (two-letter code such as 'en'), exact_match (boolean; quotes the query so the index matches it verbatim).",
@@ -705,10 +695,6 @@
               "standard",
               "research"
             ],
-            "type": "string"
-          },
-          "objective": {
-            "description": "What the search is for, in plain language (e.g. 'find the canonical migration guide to cite'). Recorded for ranking evaluation; does not change retrieval today.",
             "type": "string"
           },
           "query": {

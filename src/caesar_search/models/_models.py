@@ -417,14 +417,6 @@ class SearchRequest(BaseModel):
     """
     Calling model identifier, recorded for analytics and ranking tuning.
     """
-    content: dict[str, Any] | None = None
-    """
-    Accepted for forward compatibility; no effect today. /v1/search returns snippets and passages only - read a result in full with /v1/document.
-    """
-    debug: dict[str, Any] | None = None
-    """
-    Reserved for internal evaluation harnesses; ignored for public callers.
-    """
     filters: dict[str, Any] | None = None
     """
     Structured filters. Keys: country (two-letter code such as 'us' or 'de', scoping results to a market), language (two-letter code such as 'en'), exact_match (boolean; quotes the query so the index matches it verbatim).
@@ -440,10 +432,6 @@ class SearchRequest(BaseModel):
     mode: Mode | None = "standard"
     """
     Retrieval budget and ranking mode: fast skips the reranking stage for the lowest latency; standard (default) and research rerank results, with research spending the largest retrieval budget.
-    """
-    objective: str | None = None
-    """
-    What the search is for, in plain language (e.g. 'find the canonical migration guide to cite'). Recorded for ranking evaluation; does not change retrieval today.
     """
     query: str = Field(..., examples=["linux kernel amd gpu suspend"], min_length=1)
     """
