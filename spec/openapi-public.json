@@ -996,7 +996,7 @@
                 }
               }
             },
-            "description": "Missing or invalid API key."
+            "description": "Invalid API key, or missing API key when keyless access is disabled."
           },
           "403": {
             "content": {
@@ -1060,6 +1060,7 @@
           }
         },
         "security": [
+          {},
           {
             "bearerApiKey": []
           }
@@ -1125,7 +1126,7 @@
                 }
               }
             },
-            "description": "Missing or invalid API key."
+            "description": "Invalid API key, or missing API key when keyless access is disabled."
           },
           "403": {
             "content": {
@@ -1169,6 +1170,7 @@
           }
         },
         "security": [
+          {},
           {
             "bearerApiKey": []
           }
@@ -1234,7 +1236,7 @@
                 }
               }
             },
-            "description": "Missing or invalid API key."
+            "description": "Invalid API key, or missing API key when keyless access is disabled."
           },
           "403": {
             "content": {
@@ -1288,6 +1290,7 @@
           }
         },
         "security": [
+          {},
           {
             "bearerApiKey": []
           }
