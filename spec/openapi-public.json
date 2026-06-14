@@ -221,7 +221,7 @@
           "$schema": {
             "description": "A URL to the JSON Schema for this object.",
             "examples": [
-              "https://search-api-staging-779189860552.europe-west1.run.app/DocumentRequest.json"
+              "https://alpha.api.trycaesar.com/DocumentRequest.json"
             ],
             "format": "uri",
             "readOnly": true,
@@ -278,7 +278,7 @@
           "$schema": {
             "description": "A URL to the JSON Schema for this object.",
             "examples": [
-              "https://search-api-staging-779189860552.europe-west1.run.app/DocumentResponse.json"
+              "https://alpha.api.trycaesar.com/DocumentResponse.json"
             ],
             "format": "uri",
             "readOnly": true,
@@ -370,7 +370,7 @@
           "$schema": {
             "description": "A URL to the JSON Schema for this object.",
             "examples": [
-              "https://search-api-staging-779189860552.europe-west1.run.app/ErrorEnvelope.json"
+              "https://alpha.api.trycaesar.com/ErrorEnvelope.json"
             ],
             "format": "uri",
             "readOnly": true,
@@ -419,7 +419,7 @@
           "$schema": {
             "description": "A URL to the JSON Schema for this object.",
             "examples": [
-              "https://search-api-staging-779189860552.europe-west1.run.app/FeedbackRequest.json"
+              "https://alpha.api.trycaesar.com/FeedbackRequest.json"
             ],
             "format": "uri",
             "readOnly": true,
@@ -490,7 +490,7 @@
           "$schema": {
             "description": "A URL to the JSON Schema for this object.",
             "examples": [
-              "https://search-api-staging-779189860552.europe-west1.run.app/FeedbackResponse.json"
+              "https://alpha.api.trycaesar.com/FeedbackResponse.json"
             ],
             "format": "uri",
             "readOnly": true,
@@ -659,7 +659,7 @@
           "$schema": {
             "description": "A URL to the JSON Schema for this object.",
             "examples": [
-              "https://search-api-staging-779189860552.europe-west1.run.app/SearchRequest.json"
+              "https://alpha.api.trycaesar.com/SearchRequest.json"
             ],
             "format": "uri",
             "readOnly": true,
@@ -741,7 +741,7 @@
           "$schema": {
             "description": "A URL to the JSON Schema for this object.",
             "examples": [
-              "https://search-api-staging-779189860552.europe-west1.run.app/SearchResponse.json"
+              "https://alpha.api.trycaesar.com/SearchResponse.json"
             ],
             "format": "uri",
             "readOnly": true,
@@ -1318,7 +1318,7 @@
   "servers": [
     {
       "description": "Staging",
-      "url": "https://search-api-staging-779189860552.europe-west1.run.app"
+      "url": "https://alpha.api.trycaesar.com"
     },
     {
       "description": "Local development",

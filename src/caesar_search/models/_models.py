@@ -140,9 +140,7 @@ class DocumentRequest(BaseModel):
     field_schema: AnyUrl | None = Field(
         None,
         alias="$schema",
-        examples=[
-            "https://search-api-staging-779189860552.europe-west1.run.app/DocumentRequest.json"
-        ],
+        examples=["https://alpha.api.trycaesar.com/DocumentRequest.json"],
     )
     """
     A URL to the JSON Schema for this object.
@@ -206,9 +204,7 @@ class ErrorEnvelope(BaseModel):
     field_schema: AnyUrl | None = Field(
         None,
         alias="$schema",
-        examples=[
-            "https://search-api-staging-779189860552.europe-west1.run.app/ErrorEnvelope.json"
-        ],
+        examples=["https://alpha.api.trycaesar.com/ErrorEnvelope.json"],
     )
     """
     A URL to the JSON Schema for this object.
@@ -264,9 +260,7 @@ class FeedbackRequest(BaseModel):
     field_schema: AnyUrl | None = Field(
         None,
         alias="$schema",
-        examples=[
-            "https://search-api-staging-779189860552.europe-west1.run.app/FeedbackRequest.json"
-        ],
+        examples=["https://alpha.api.trycaesar.com/FeedbackRequest.json"],
     )
     """
     A URL to the JSON Schema for this object.
@@ -406,9 +400,7 @@ class SearchRequest(BaseModel):
     field_schema: AnyUrl | None = Field(
         None,
         alias="$schema",
-        examples=[
-            "https://search-api-staging-779189860552.europe-west1.run.app/SearchRequest.json"
-        ],
+        examples=["https://alpha.api.trycaesar.com/SearchRequest.json"],
     )
     """
     A URL to the JSON Schema for this object.
@@ -507,9 +499,7 @@ class DocumentResponse(BaseModel):
     field_schema: AnyUrl | None = Field(
         None,
         alias="$schema",
-        examples=[
-            "https://search-api-staging-779189860552.europe-west1.run.app/DocumentResponse.json"
-        ],
+        examples=["https://alpha.api.trycaesar.com/DocumentResponse.json"],
     )
     """
     A URL to the JSON Schema for this object.
@@ -533,9 +523,7 @@ class FeedbackResponse(BaseModel):
     field_schema: AnyUrl | None = Field(
         None,
         alias="$schema",
-        examples=[
-            "https://search-api-staging-779189860552.europe-west1.run.app/FeedbackResponse.json"
-        ],
+        examples=["https://alpha.api.trycaesar.com/FeedbackResponse.json"],
     )
     """
     A URL to the JSON Schema for this object.
@@ -572,9 +560,7 @@ class SearchResponse(BaseModel):
     field_schema: AnyUrl | None = Field(
         None,
         alias="$schema",
-        examples=[
-            "https://search-api-staging-779189860552.europe-west1.run.app/SearchResponse.json"
-        ],
+        examples=["https://alpha.api.trycaesar.com/SearchResponse.json"],
     )
     """
     A URL to the JSON Schema for this object.

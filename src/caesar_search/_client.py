@@ -12,7 +12,7 @@ from ._exceptions import APIConnectionError, APITimeoutError, status_error_from_
 from ._version import __version__
 from .models import DocumentResponse, FeedbackResponse, SearchResponse
 
-DEFAULT_BASE_URL = "https://search-api-staging-779189860552.europe-west1.run.app"
+DEFAULT_BASE_URL = "https://alpha.api.trycaesar.com"
 DEFAULT_TIMEOUT = 30.0
 DEFAULT_MAX_RETRIES = 3
 _BASE_DELAY = 0.5

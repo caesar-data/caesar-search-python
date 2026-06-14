@@ -13,7 +13,7 @@ on:
   workflow_dispatch: {}
 
 env:
-  SPEC_URL: https://search-api-staging-779189860552.europe-west1.run.app/openapi/public.json
+  SPEC_URL: https://alpha.api.trycaesar.com/openapi/public.json
 
 permissions:
   contents: write
