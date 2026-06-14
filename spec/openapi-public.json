@@ -948,6 +948,16 @@
         "operationId": "get-document",
         "parameters": [
           {
+            "description": "Optional bearer token for keyed access. Omit this header for anonymous access.",
+            "in": "header",
+            "name": "Authorization",
+            "schema": {
+              "description": "Optional bearer token for keyed access. Omit this header for anonymous access.",
+              "example": "Bearer \u003ctoken\u003e",
+              "type": "string"
+            }
+          },
+          {
             "description": "Optional client session identifier.",
             "in": "header",
             "name": "X-Session-ID",
@@ -1072,6 +1082,16 @@
         "operationId": "record-feedback",
         "parameters": [
           {
+            "description": "Optional bearer token for keyed access. Omit this header for anonymous access.",
+            "in": "header",
+            "name": "Authorization",
+            "schema": {
+              "description": "Optional bearer token for keyed access. Omit this header for anonymous access.",
+              "example": "Bearer \u003ctoken\u003e",
+              "type": "string"
+            }
+          },
+          {
             "description": "Optional client session identifier.",
             "in": "header",
             "name": "X-Session-ID",
@@ -1175,6 +1195,16 @@
         "description": "Run ranked retrieval over canonical documents and passages.",
         "operationId": "search",
         "parameters": [
+          {
+            "description": "Optional bearer token for keyed access. Omit this header for anonymous access.",
+            "in": "header",
+            "name": "Authorization",
+            "schema": {
+              "description": "Optional bearer token for keyed access. Omit this header for anonymous access.",
+              "example": "Bearer \u003ctoken\u003e",
+              "type": "string"
+            }
+          },
           {
             "description": "Optional client session identifier.",
             "in": "header",
