@@ -1059,12 +1059,6 @@
             "description": "Search infrastructure unavailable."
           }
         },
-        "security": [
-          {},
-          {
-            "bearerApiKey": []
-          }
-        ],
         "summary": "Get a document",
         "tags": [
           "Documents"
@@ -1169,12 +1163,6 @@
             "description": "Internal error."
           }
         },
-        "security": [
-          {},
-          {
-            "bearerApiKey": []
-          }
-        ],
         "summary": "Record feedback",
         "tags": [
           "Feedback"
@@ -1289,12 +1277,6 @@
             "description": "Search infrastructure unavailable."
           }
         },
-        "security": [
-          {},
-          {
-            "bearerApiKey": []
-          }
-        ],
         "summary": "Search",
         "tags": [
           "Search"
