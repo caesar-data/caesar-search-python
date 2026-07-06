@@ -78,7 +78,7 @@ class Format(Enum):
 
 class Selection(Enum):
     """
-    How content.text is chosen: query_relevant (default) returns the passages most relevant to query; top_passages returns the document's leading passages; passage_ids returns exactly content.passage_ids; full_document returns the extracted text up to max_chars; none returns no content body.
+    How content.text is chosen: full_document (default) returns the extracted document text; query_relevant returns the passages most relevant to query; top_passages returns the document's leading passages; passage_ids returns exactly content.passage_ids; none returns no content body.
     """
 
     none = "none"
@@ -100,9 +100,9 @@ class DocumentContentRequest(BaseModel):
     """
     When true, passages carry char_start/char_end offsets into the full extracted text when available, for character-precise citation.
     """
-    max_chars: int | None = Field(12000, ge=1)
+    max_chars: int | None = Field(None, ge=1)
     """
-    Maximum content.text characters to return. Longer documents set content.truncated true; continue with content.range.start_char instead of retrying with a larger cap.
+    Optional maximum content.text characters to return. Omit it for the full selected content. Longer capped reads set content.truncated true; continue with content.range.start_char instead of retrying with a larger cap.
     """
     passage_ids: list[str] | None = None
     """
@@ -112,9 +112,9 @@ class DocumentContentRequest(BaseModel):
     """
     Continuation read: return content starting at a character offset of the same document.
     """
-    selection: Selection | None = "query_relevant"
+    selection: Selection | None = "full_document"
     """
-    How content.text is chosen: query_relevant (default) returns the passages most relevant to query; top_passages returns the document's leading passages; passage_ids returns exactly content.passage_ids; full_document returns the extracted text up to max_chars; none returns no content body.
+    How content.text is chosen: full_document (default) returns the extracted document text; query_relevant returns the passages most relevant to query; top_passages returns the document's leading passages; passage_ids returns exactly content.passage_ids; none returns no content body.
     """
 
 
@@ -167,7 +167,7 @@ class DocumentRequest(BaseModel):
     """
     query: str | None = None
     """
-    Query context for passage selection: with content.selection query_relevant, content and passages are chosen for relevance to this text.
+    Query context for passage selection when content.selection is query_relevant.
     """
 
 
@@ -393,60 +393,6 @@ class Mode(Enum):
     research = "research"
 
 
-class SearchRequest(BaseModel):
-    model_config = ConfigDict(
-        extra="allow",
-    )
-    field_schema: AnyUrl | None = Field(
-        None,
-        alias="$schema",
-        examples=["https://alpha.api.trycaesar.com/SearchRequest.json"],
-    )
-    """
-    A URL to the JSON Schema for this object.
-    """
-    client_model: str | None = None
-    """
-    Calling model identifier, recorded for analytics and ranking tuning.
-    """
-    filters: dict[str, Any] | None = None
-    """
-    Structured filters. Keys: country (two-letter code such as 'us' or 'de', scoping results to a market), language (two-letter code such as 'en'), exact_match (boolean; quotes the query so the index matches it verbatim).
-    """
-    freshness_policy: dict[str, Any] | None = None
-    """
-    Recency requirements. Keys: published_after (RFC 3339 timestamp or YYYY-MM-DD date; only content published after it) and freshness (coarse window code pd, pw, pm, or py for past day, week, month, or year; ignored when published_after is set).
-    """
-    max_results: int | None = Field(10, ge=1, le=50)
-    """
-    Maximum number of ranked results to return. The response carries fewer when the index has fewer matches.
-    """
-    mode: Mode | None = "standard"
-    """
-    Retrieval budget and ranking mode: fast skips the reranking stage for the lowest latency; standard (default) and research rerank results, with research spending the largest retrieval budget.
-    """
-    query: str = Field(..., examples=["linux kernel amd gpu suspend"], min_length=1)
-    """
-    The search query, phrased as the user or agent would ask it. Drives ranking and passage selection even when search_queries supplies a rewrite.
-    """
-    response: ResponseShape | None = None
-    """
-    Optional response shaping: verbosity preset and serialized-size budget.
-    """
-    search_queries: list[str] | None = None
-    """
-    Caller-provided query rewrites. The first entry replaces query as the text sent to the search index; query still drives reranking and passage selection. All entries are visible to the server-side query rewriter.
-    """
-    session_id: UUID | None = None
-    """
-    Client session identifier (UUID). Groups related search, document, and feedback calls; equivalent to the X-Session-ID header. When omitted, the server generates one and echoes it back as session_id.
-    """
-    source_policy: dict[str, Any] | None = None
-    """
-    Domain allow/deny policy. Keys: include_domains (array of domains; with require_domain_match true, results outside them are dropped, and a single entry is also sent to the index as a site: operator), exclude_domains (array of domains whose results are always dropped), require_domain_match (boolean). Domains match their subdomains; a leading www. is ignored.
-    """
-
-
 class SearchResultMetadata(BaseModel):
     model_config = ConfigDict(
         extra="allow",
@@ -457,6 +403,20 @@ class SearchResultMetadata(BaseModel):
     last_crawled_at: str | None = None
     last_seen_at: str | None = None
     published_at: str | None = None
+
+
+class SearchScope(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    indexes: list[str] | None = None
+    """
+    Indexes to search: web (the shared web corpus) and/or workspace (your organization's ingested documents). Default: ["web"].
+    """
+    workspace_id: UUID | None = None
+    """
+    Workspace to search; required when indexes includes workspace.
+    """
 
 
 class SearchScore(BaseModel):
@@ -536,6 +496,64 @@ class FeedbackResponse(BaseModel):
     usage: Usage | None = None
 
 
+class SearchRequest(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    field_schema: AnyUrl | None = Field(
+        None,
+        alias="$schema",
+        examples=["https://alpha.api.trycaesar.com/SearchRequest.json"],
+    )
+    """
+    A URL to the JSON Schema for this object.
+    """
+    client_model: str | None = None
+    """
+    Calling model identifier, recorded for analytics and ranking tuning.
+    """
+    filters: dict[str, Any] | None = None
+    """
+    Structured filters. Keys: country (two-letter code such as 'us' or 'de', scoping results to a market), language (two-letter code such as 'en'), exact_match (boolean; quotes the query so the index matches it verbatim).
+    """
+    freshness_policy: dict[str, Any] | None = None
+    """
+    Recency requirements. Keys: published_after (RFC 3339 timestamp or YYYY-MM-DD date; only content published after it) and freshness (coarse window code pd, pw, pm, or py for past day, week, month, or year; ignored when published_after is set).
+    """
+    max_results: int | None = Field(10, ge=1, le=50)
+    """
+    Maximum number of ranked results to return. The response carries fewer when the index has fewer matches.
+    """
+    mode: Mode | None = "standard"
+    """
+    Retrieval budget and ranking mode: fast skips the reranking stage for the lowest latency; standard (default) and research rerank results, with research spending the largest retrieval budget.
+    """
+    query: str = Field(..., examples=["linux kernel amd gpu suspend"], min_length=1)
+    """
+    The search query, phrased as the user or agent would ask it. Drives ranking and passage selection even when search_queries supplies a rewrite.
+    """
+    response: ResponseShape | None = None
+    """
+    Optional response shaping: verbosity preset and serialized-size budget.
+    """
+    scope: SearchScope | None = None
+    """
+    Which indexes to search. Omit it for the web index. Additive: existing clients are unaffected.
+    """
+    search_queries: list[str] | None = None
+    """
+    Caller-provided query rewrites. The first entry replaces query as the text sent to the search index; query still drives reranking and passage selection. All entries are visible to the server-side query rewriter.
+    """
+    session_id: UUID | None = None
+    """
+    Client session identifier (UUID). Groups related search, document, and feedback calls; equivalent to the X-Session-ID header. When omitted, the server generates one and echoes it back as session_id.
+    """
+    source_policy: dict[str, Any] | None = None
+    """
+    Domain allow/deny policy. Keys: include_domains (array of domains; with require_domain_match true, results outside them are dropped, and a single entry is also sent to the index as a site: operator), exclude_domains (array of domains whose results are always dropped), require_domain_match (boolean). Domains match their subdomains; a leading www. is ignored.
+    """
+
+
 class SearchResult(BaseModel):
     model_config = ConfigDict(
         extra="allow",
@@ -543,6 +561,7 @@ class SearchResult(BaseModel):
     canonical_url: str
     description: str | None = None
     doc_id: str
+    index: str | None = None
     metadata: SearchResultMetadata | None = None
     passages: list[Passage] | None = None
     provenance: DocumentProvenance | None = None

@@ -9,6 +9,7 @@ from caesar_search import (
     AsyncCaesar,
     AuthenticationError,
     Caesar,
+    InsufficientBalanceError,
     RateLimitError,
 )
 
@@ -76,7 +77,7 @@ def test_read_maps_doc_id_url_and_range() -> None:
     by_url = transport.body(1)
     assert by_url["canonical_url"] == "https://example.com/page"
     assert by_url["query"] == "what is it"
-    assert by_url["content"]["selection"] == "query_relevant"
+    assert by_url["content"]["selection"] == "full_document"
 
     by_range = transport.body(2)
     assert by_range["content"]["range"] == {"start_char": 100}
@@ -153,6 +154,28 @@ def test_auth_error_maps_to_authentication_error() -> None:
     assert excinfo.value.status_code == 401
     assert excinfo.value.code == "missing_api_key"
     assert excinfo.value.request_id == "req-1"
+
+
+def test_insufficient_balance_maps_to_specific_error() -> None:
+    transport = RecordingTransport(
+        lambda _r, _i: httpx.Response(
+            402,
+            json={
+                "request_id": "req-billing",
+                "error": {
+                    "code": "insufficient_balance",
+                    "message": "top up",
+                    "details": {"balance_cents": -37},
+                },
+            },
+        )
+    )
+    client = make_client(transport, max_retries=0)
+    with pytest.raises(InsufficientBalanceError) as excinfo:
+        client.search("q")
+    assert excinfo.value.status_code == 402
+    assert excinfo.value.code == "insufficient_balance"
+    assert excinfo.value.request_id == "req-billing"
 
 
 def test_timeout_maps_to_api_timeout_error() -> None:

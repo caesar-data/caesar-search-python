@@ -33,6 +33,10 @@ class AuthenticationError(APIStatusError):
     """Missing or invalid API key (HTTP 401/403)."""
 
 
+class InsufficientBalanceError(APIStatusError):
+    """Prepaid balance is depleted (HTTP 402 insufficient_balance)."""
+
+
 class RateLimitError(APIStatusError):
     """Rate limit exceeded (HTTP 429)."""
 
@@ -53,6 +57,8 @@ def status_error_from_response(response: httpx.Response) -> APIStatusError:
     error_class = APIStatusError
     if response.status_code in (401, 403):
         error_class = AuthenticationError
+    elif response.status_code == 402 and code == "insufficient_balance":
+        error_class = InsufficientBalanceError
     elif response.status_code == 429:
         error_class = RateLimitError
     return error_class(

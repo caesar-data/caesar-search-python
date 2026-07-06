@@ -8,6 +8,7 @@ from ._exceptions import (
     APITimeoutError,
     AuthenticationError,
     CaesarError,
+    InsufficientBalanceError,
     RateLimitError,
 )
 from ._version import __version__
@@ -24,6 +25,7 @@ __all__ = [
     "CaesarError",
     "DocumentResponse",
     "FeedbackResponse",
+    "InsufficientBalanceError",
     "RateLimitError",
     "SearchResponse",
     "__version__",

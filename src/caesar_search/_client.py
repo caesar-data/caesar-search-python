@@ -99,7 +99,7 @@ def _read_body(
         raise ValueError("provide a doc_id or a url")
 
     content: dict[str, Any] = {
-        "selection": "query_relevant" if query else "full_document",
+        "selection": "full_document",
         "format": "markdown",
     }
     if max_chars is not None:
