@@ -975,16 +975,6 @@
         "operationId": "get-document",
         "parameters": [
           {
-            "description": "Optional bearer token for keyed access. Omit this header for anonymous access.",
-            "in": "header",
-            "name": "Authorization",
-            "schema": {
-              "description": "Optional bearer token for keyed access. Omit this header for anonymous access.",
-              "example": "Bearer \u003ctoken\u003e",
-              "type": "string"
-            }
-          },
-          {
             "description": "Optional client session identifier.",
             "in": "header",
             "name": "X-Session-ID",
@@ -1033,7 +1023,7 @@
                 }
               }
             },
-            "description": "Invalid API key, or missing API key when keyless access is disabled."
+            "description": "Missing or invalid API key."
           },
           "402": {
             "content": {
@@ -1106,6 +1096,11 @@
             "description": "Search infrastructure unavailable."
           }
         },
+        "security": [
+          {
+            "bearerApiKey": []
+          }
+        ],
         "summary": "Get a document",
         "tags": [
           "Documents"
@@ -1118,16 +1113,6 @@
         "description": "Persist an agent or evaluation feedback event.",
         "operationId": "record-feedback",
         "parameters": [
-          {
-            "description": "Optional bearer token for keyed access. Omit this header for anonymous access.",
-            "in": "header",
-            "name": "Authorization",
-            "schema": {
-              "description": "Optional bearer token for keyed access. Omit this header for anonymous access.",
-              "example": "Bearer \u003ctoken\u003e",
-              "type": "string"
-            }
-          },
           {
             "description": "Optional client session identifier.",
             "in": "header",
@@ -1177,7 +1162,7 @@
                 }
               }
             },
-            "description": "Invalid API key, or missing API key when keyless access is disabled."
+            "description": "Missing or invalid API key."
           },
           "403": {
             "content": {
@@ -1220,6 +1205,11 @@
             "description": "Internal error."
           }
         },
+        "security": [
+          {
+            "bearerApiKey": []
+          }
+        ],
         "summary": "Record feedback",
         "tags": [
           "Feedback"
@@ -1232,16 +1222,6 @@
         "description": "Run ranked retrieval over canonical documents and passages.",
         "operationId": "search",
         "parameters": [
-          {
-            "description": "Optional bearer token for keyed access. Omit this header for anonymous access.",
-            "in": "header",
-            "name": "Authorization",
-            "schema": {
-              "description": "Optional bearer token for keyed access. Omit this header for anonymous access.",
-              "example": "Bearer \u003ctoken\u003e",
-              "type": "string"
-            }
-          },
           {
             "description": "Optional client session identifier.",
             "in": "header",
@@ -1291,7 +1271,7 @@
                 }
               }
             },
-            "description": "Invalid API key, or missing API key when keyless access is disabled."
+            "description": "Missing or invalid API key."
           },
           "402": {
             "content": {
@@ -1354,6 +1334,11 @@
             "description": "Search infrastructure unavailable."
           }
         },
+        "security": [
+          {
+            "bearerApiKey": []
+          }
+        ],
         "summary": "Search",
         "tags": [
           "Search"
