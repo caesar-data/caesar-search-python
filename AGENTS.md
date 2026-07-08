@@ -7,7 +7,7 @@ Guidance for AI agents using and maintaining `caesar-search` (Python).
 - The loop: `search()` → pick `doc_id` → `read()` → optionally `feedback()`. Thread provenance handles (`doc_id`, `search_id`) between calls.
 - `read()` accepts a doc_id or URL positionally. A truncated read sets `content.truncated`; continue with `start_char=content.start_char + content.char_count` — do not retry with a bigger `max_chars`.
 - `search(verbosity=...)` controls payload shape: `ids_only` (handles only), `compact`, `standard` (default), `full` (adds provenance). `max_chars_total=` sets a hard response budget.
-- Set `CAESAR_API_KEY`; never hardcode keys. Exceptions: catch `AuthenticationError`/`RateLimitError`/`APIStatusError`.
+- Set `CAESAR_API_KEY`; never hardcode keys. Exceptions: catch `MissingAPIKeyError`/`AuthenticationError`/`RateLimitError`/`APIStatusError`.
 
 ## Common mistakes
 

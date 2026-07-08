@@ -52,7 +52,7 @@ jobs:
         id: classify
         if: steps.drift.outputs.changed == 'true'
         run: |
-          docker run --rm -v /tmp:/tmp -v "$PWD/spec:/spec" ghcr.io/oasdiff/oasdiff \
+          docker run --rm -v /tmp:/tmp -v "$PWD/spec:/spec" tufin/oasdiff:latest \
             breaking /spec/openapi-public.json /tmp/live-spec.json > /tmp/breaking.txt || true
           if [ -s /tmp/breaking.txt ]; then
             echo "breaking=true" >> "$GITHUB_OUTPUT"
@@ -61,7 +61,7 @@ jobs:
           fi
           {
             echo "summary<<EOF"
-            docker run --rm -v /tmp:/tmp -v "$PWD/spec:/spec" ghcr.io/oasdiff/oasdiff \
+            docker run --rm -v /tmp:/tmp -v "$PWD/spec:/spec" tufin/oasdiff:latest \
               changelog /spec/openapi-public.json /tmp/live-spec.json || true
             echo "EOF"
           } >> "$GITHUB_OUTPUT"

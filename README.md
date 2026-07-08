@@ -8,7 +8,7 @@ Official Python SDK for the Caesar search API — web search with provenance, bu
 # pip install caesar-search    (or: uv add caesar-search)
 from caesar_search import Caesar
 
-client = Caesar()  # reads CAESAR_API_KEY; anonymous tier works without a key
+client = Caesar()  # requires CAESAR_API_KEY (get one at app.trycaesar.com)
 results = client.search("rust async runtime comparison", max_results=5)
 doc = client.read(results.results[0].doc_id, query="which runtime is fastest")
 client.feedback("result_helpful", search_id=results.search_id, doc_id=doc.doc.doc_id)
@@ -21,11 +21,11 @@ client.feedback("result_helpful", search_id=results.search_id, doc_id=doc.doc.do
 - Responses are typed pydantic v2 models generated from the public OpenAPI spec; provenance fields (`doc_id`, `search_id`, `capture_id`, canonical/source URLs, crawl dates) are preserved verbatim.
 - `client.with_raw_response.search(...)` returns the raw `httpx.Response`.
 - Retries: 429/5xx with capped exponential backoff honoring `Retry-After` (`max_retries=` to tune, `0` to disable).
-- Config: `api_key=` / `CAESAR_API_KEY`; `base_url=` / `CAESAR_BASE_URL`.
+- Config: `api_key=` / `CAESAR_API_KEY` is required for the public API; `base_url=` / `CAESAR_BASE_URL` may point at a self-hosted deployment.
 
 ## Errors
 
-`CaesarError` → `APIConnectionError` / `APITimeoutError` and `APIStatusError` (with `.status_code`, `.code`, `.message`, `.request_id`) → `AuthenticationError` (401/403), `RateLimitError` (429).
+`CaesarError` → `APIConnectionError` / `APITimeoutError` and `APIStatusError` (with `.status_code`, `.code`, `.message`, `.request_id`) → `AuthenticationError` (401/403), `MissingAPIKeyError` (local `missing_api_key` preflight), `RateLimitError` (429).
 
 ## License
 
