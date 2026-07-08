@@ -37,6 +37,21 @@ class InsufficientBalanceError(APIStatusError):
     """Prepaid balance is depleted (HTTP 402 insufficient_balance)."""
 
 
+class MissingAPIKeyError(AuthenticationError):
+    """No API key was configured for the public Caesar API."""
+
+    def __init__(self, *, base_url: str):
+        request = httpx.Request("POST", base_url)
+        response = httpx.Response(401, request=request)
+        super().__init__(
+            status_code=401,
+            code="missing_api_key",
+            message="missing or invalid API key — set CAESAR_API_KEY",
+            request_id=None,
+            response=response,
+        )
+
+
 class RateLimitError(APIStatusError):
     """Rate limit exceeded (HTTP 429)."""
 

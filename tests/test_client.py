@@ -10,6 +10,7 @@ from caesar_search import (
     AuthenticationError,
     Caesar,
     InsufficientBalanceError,
+    MissingAPIKeyError,
     RateLimitError,
 )
 
@@ -59,6 +60,23 @@ def test_api_key_argument_beats_environment(
     client = make_client(search_transport, api_key="arg-key")
     client.search("q")
     assert search_transport.requests[0].headers["Authorization"] == "Bearer arg-key"
+
+
+def test_public_base_url_without_key_raises_missing_api_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("CAESAR_API_KEY", raising=False)
+    monkeypatch.delenv("CAESAR_BASE_URL", raising=False)
+    with pytest.raises(MissingAPIKeyError) as excinfo:
+        Caesar()
+    assert excinfo.value.code == "missing_api_key"
+    assert excinfo.value.status_code == 401
+
+
+def test_custom_base_url_without_key_skips_preflight(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("CAESAR_API_KEY", raising=False)
+    transport = RecordingTransport(lambda _r, _i: httpx.Response(200, json=SAMPLE_SEARCH_RESPONSE))
+    client = Caesar(base_url="http://127.0.0.1:9999", http_client=httpx.Client(transport=transport))
+    client.search("q")
+    assert "Authorization" not in transport.requests[0].headers
 
 
 def test_read_maps_doc_id_url_and_range() -> None:
@@ -215,6 +233,15 @@ async def test_async_client_mirrors_sync() -> None:
     assert response.results is not None
     assert response.results[0].doc_id == "44444444-4444-4444-8444-444444444444"
     assert calls[0].headers["X-Caesar-Client"].startswith("python-sdk/")
+
+
+async def test_async_public_base_url_without_key_raises_missing_api_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("CAESAR_API_KEY", raising=False)
+    monkeypatch.delenv("CAESAR_BASE_URL", raising=False)
+    with pytest.raises(MissingAPIKeyError):
+        AsyncCaesar()
 
 
 async def test_async_retries() -> None:

@@ -8,7 +8,7 @@ from typing import Any
 
 import httpx
 
-from ._exceptions import APIConnectionError, APITimeoutError, status_error_from_response
+from ._exceptions import APIConnectionError, APITimeoutError, MissingAPIKeyError, status_error_from_response
 from ._version import __version__
 from .models import DocumentResponse, FeedbackResponse, SearchResponse
 
@@ -27,6 +27,15 @@ def _resolve_key(api_key: str | None) -> str | None:
 
 def _resolve_base_url(base_url: str | None) -> str:
     return (base_url or os.environ.get("CAESAR_BASE_URL") or DEFAULT_BASE_URL).rstrip("/")
+
+
+def _is_public_base_url(base_url: str) -> bool:
+    return base_url.rstrip("/") == DEFAULT_BASE_URL
+
+
+def _require_key_for_public_api(api_key: str | None, base_url: str) -> None:
+    if not api_key and _is_public_base_url(base_url):
+        raise MissingAPIKeyError(base_url=base_url)
 
 
 def _headers(api_key: str | None) -> dict[str, str]:
@@ -161,8 +170,8 @@ class Caesar:
     """Synchronous client for the Caesar search API.
 
     Reads ``CAESAR_API_KEY`` and ``CAESAR_BASE_URL`` from the environment when
-    not passed explicitly. Anonymous access works at a lower rate limit when
-    the deployment allows it.
+    not passed explicitly. The public Caesar API requires an API key; custom
+    ``base_url`` deployments decide their own authentication policy.
     """
 
     def __init__(
@@ -176,6 +185,7 @@ class Caesar:
     ) -> None:
         self._api_key = _resolve_key(api_key)
         self._base_url = _resolve_base_url(base_url)
+        _require_key_for_public_api(self._api_key, self._base_url)
         self._max_retries = max_retries
         self._client = http_client or httpx.Client(timeout=timeout)
         self.with_raw_response = _RawResponses(self)
@@ -360,6 +370,7 @@ class AsyncCaesar:
     ) -> None:
         self._api_key = _resolve_key(api_key)
         self._base_url = _resolve_base_url(base_url)
+        _require_key_for_public_api(self._api_key, self._base_url)
         self._max_retries = max_retries
         self._client = http_client or httpx.AsyncClient(timeout=timeout)
 
