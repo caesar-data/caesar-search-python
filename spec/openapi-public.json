@@ -688,9 +688,8 @@
           },
           "mode": {
             "default": "standard",
-            "description": "Retrieval budget and ranking mode: fast skips the reranking stage for the lowest latency; standard (default) and research rerank results, with research spending the largest retrieval budget.",
+            "description": "Retrieval budget and ranking mode: standard (default) and research both rerank results, with research spending the largest retrieval budget.",
             "enum": [
-              "fast",
               "standard",
               "research"
             ],

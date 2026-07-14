@@ -385,10 +385,9 @@ class ResponseShape(BaseModel):
 
 class Mode(Enum):
     """
-    Retrieval budget and ranking mode: fast skips the reranking stage for the lowest latency; standard (default) and research rerank results, with research spending the largest retrieval budget.
+    Retrieval budget and ranking mode: standard (default) and research both rerank results, with research spending the largest retrieval budget.
     """
 
-    fast = "fast"
     standard = "standard"
     research = "research"
 
@@ -526,7 +525,7 @@ class SearchRequest(BaseModel):
     """
     mode: Mode | None = "standard"
     """
-    Retrieval budget and ranking mode: fast skips the reranking stage for the lowest latency; standard (default) and research rerank results, with research spending the largest retrieval budget.
+    Retrieval budget and ranking mode: standard (default) and research both rerank results, with research spending the largest retrieval budget.
     """
     query: str = Field(..., examples=["linux kernel amd gpu suspend"], min_length=1)
     """
