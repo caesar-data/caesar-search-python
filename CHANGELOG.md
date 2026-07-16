@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0
+
+- Breaking: removed `usage.approx_tokens` from responses; `Usage` now has only `requests` and `bytes_returned`.
+
 ## 0.2.0
 
 - The public Caesar API now requires an API key. Clients without a key now raise `missing_api_key` locally instead of sending an anonymous request.

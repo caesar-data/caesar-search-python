@@ -429,7 +429,6 @@ class Usage(BaseModel):
     model_config = ConfigDict(
         extra="allow",
     )
-    approx_tokens: int
     bytes_returned: int
     requests: int
 

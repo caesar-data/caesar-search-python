@@ -17,7 +17,7 @@ def test_search_response_golden_round_trip() -> None:
     assert result.score is not None and result.score.value == 0.91
     assert result.passages is not None
     assert result.passages[0].passage_id == "55555555-5555-4555-8555-555555555555"
-    assert model.usage is not None and model.usage.approx_tokens == 250
+    assert model.usage is not None and model.usage.bytes_returned == 1000
 
     # Round-trip must preserve provenance fields verbatim.
     dumped = model.model_dump(exclude_none=True)

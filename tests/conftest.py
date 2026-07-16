@@ -35,7 +35,7 @@ SAMPLE_SEARCH_RESPONSE: dict[str, Any] = {
             ],
         }
     ],
-    "usage": {"requests": 1, "bytes_returned": 1000, "approx_tokens": 250},
+    "usage": {"requests": 1, "bytes_returned": 1000},
 }
 
 SAMPLE_DOCUMENT_RESPONSE: dict[str, Any] = {
@@ -60,7 +60,7 @@ SAMPLE_DOCUMENT_RESPONSE: dict[str, Any] = {
         "truncated": False,
         "char_count": 21,
     },
-    "usage": {"requests": 1, "bytes_returned": 800, "approx_tokens": 200},
+    "usage": {"requests": 1, "bytes_returned": 800},
 }
 
 SAMPLE_FEEDBACK_RESPONSE: dict[str, Any] = {
@@ -72,7 +72,7 @@ SAMPLE_FEEDBACK_RESPONSE: dict[str, Any] = {
         "rate_limit": {"limit_rps": 100, "remaining": 97, "reset_at": "2026-06-12T00:00:00Z"},
     },
     "accepted": True,
-    "usage": {"requests": 1, "bytes_returned": 300, "approx_tokens": 75},
+    "usage": {"requests": 1, "bytes_returned": 300},
 }
 
 
