@@ -912,10 +912,6 @@
       "Usage": {
         "additionalProperties": false,
         "properties": {
-          "approx_tokens": {
-            "format": "int64",
-            "type": "integer"
-          },
           "bytes_returned": {
             "format": "int64",
             "type": "integer"
@@ -927,8 +923,7 @@
         },
         "required": [
           "requests",
-          "bytes_returned",
-          "approx_tokens"
+          "bytes_returned"
         ],
         "type": "object"
       },

@@ -1,6 +1,6 @@
 [project]
 name = "caesar-search"
-version = "0.3.0"
+version = "0.4.0"
 description = "Official Python SDK for the Caesar search API — web search with provenance, built for agents."
 readme = "README.md"
 license = "MIT"
