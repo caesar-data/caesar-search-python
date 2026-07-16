@@ -812,8 +812,20 @@
           "index": {
             "type": "string"
           },
+          "labels": {
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
           "metadata": {
             "$ref": "#/components/schemas/SearchResultMetadata"
+          },
+          "mime": {
+            "type": "string"
           },
           "passages": {
             "items": {
@@ -835,6 +847,9 @@
             "$ref": "#/components/schemas/SearchScore"
           },
           "snippet": {
+            "type": "string"
+          },
+          "source_uri": {
             "type": "string"
           },
           "source_url": {

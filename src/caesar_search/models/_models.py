@@ -561,12 +561,15 @@ class SearchResult(BaseModel):
     description: str | None = None
     doc_id: str
     index: str | None = None
+    labels: list[str] | None = None
     metadata: SearchResultMetadata | None = None
+    mime: str | None = None
     passages: list[Passage] | None = None
     provenance: DocumentProvenance | None = None
     rank: int
     score: SearchScore | None = None
     snippet: str | None = None
+    source_uri: str | None = None
     source_url: str | None = None
     title: str | None = None
 
