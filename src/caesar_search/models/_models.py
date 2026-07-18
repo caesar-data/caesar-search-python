@@ -321,7 +321,6 @@ class Ranking(BaseModel):
     model_config = ConfigDict(
         extra="allow",
     )
-    mode: str
     ranker_version: str
     score_scope: str
 
@@ -381,15 +380,6 @@ class ResponseShape(BaseModel):
     """
     Field preset: ids_only (rank, doc_id, url, title), compact (adds snippet, score, key dates), standard (today's default), full (adds provenance).
     """
-
-
-class Mode(Enum):
-    """
-    Retrieval budget and ranking mode: standard (default) and research both rerank results, with research spending the largest retrieval budget.
-    """
-
-    standard = "standard"
-    research = "research"
 
 
 class SearchResultMetadata(BaseModel):
@@ -520,10 +510,6 @@ class SearchRequest(BaseModel):
     max_results: int | None = Field(10, ge=1, le=50)
     """
     Maximum number of ranked results to return. The response carries fewer when the index has fewer matches.
-    """
-    mode: Mode | None = "standard"
-    """
-    Retrieval budget and ranking mode: standard (default) and research both rerank results, with research spending the largest retrieval budget.
     """
     query: str = Field(..., examples=["linux kernel amd gpu suspend"], min_length=1)
     """

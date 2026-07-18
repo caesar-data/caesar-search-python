@@ -43,6 +43,7 @@ def test_search_returns_typed_response_with_provenance(search_transport: Recordi
     assert body["max_results"] == 5
     assert body["response"] == {"verbosity": "compact", "budget": {"max_chars_total": 4000}}
     assert body["client_model"] == "python-sdk"
+    assert "mode" not in body
 
 
 def test_headers_carry_auth_and_attribution(search_transport: RecordingTransport) -> None:

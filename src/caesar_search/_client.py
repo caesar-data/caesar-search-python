@@ -62,7 +62,6 @@ def _retry_delay(attempt: int, retry_after: str | None) -> float:
 def _search_body(
     query: str,
     *,
-    mode: str | None,
     max_results: int | None,
     session_id: str | None,
     verbosity: str | None,
@@ -70,8 +69,6 @@ def _search_body(
     extra_body: dict[str, Any] | None,
 ) -> dict[str, Any]:
     body: dict[str, Any] = {"query": query, "client_model": "python-sdk"}
-    if mode is not None:
-        body["mode"] = mode
     if max_results is not None:
         body["max_results"] = max_results
     if session_id is not None:
@@ -196,7 +193,6 @@ class Caesar:
         self,
         query: str,
         *,
-        mode: str | None = None,
         max_results: int | None = None,
         session_id: str | None = None,
         verbosity: str | None = None,
@@ -206,7 +202,6 @@ class Caesar:
         """Search the web. Returns ranked results with provenance handles."""
         body = _search_body(
             query,
-            mode=mode,
             max_results=max_results,
             session_id=session_id,
             verbosity=verbosity,
@@ -320,7 +315,6 @@ class _RawResponses:
         extra_body = kwargs.pop("extra_body", None)
         body = _search_body(
             query,
-            mode=kwargs.pop("mode", None),
             max_results=kwargs.pop("max_results", None),
             session_id=kwargs.pop("session_id", None),
             verbosity=kwargs.pop("verbosity", None),
@@ -378,7 +372,6 @@ class AsyncCaesar:
         self,
         query: str,
         *,
-        mode: str | None = None,
         max_results: int | None = None,
         session_id: str | None = None,
         verbosity: str | None = None,
@@ -387,7 +380,6 @@ class AsyncCaesar:
     ) -> SearchResponse:
         body = _search_body(
             query,
-            mode=mode,
             max_results=max_results,
             session_id=session_id,
             verbosity=verbosity,
