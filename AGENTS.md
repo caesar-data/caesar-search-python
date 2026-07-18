@@ -22,7 +22,7 @@ Guidance for AI agents using and maintaining `caesar-search` (Python).
 ## Maintaining this repo
 
 - `spec/openapi-public.json` is the vendored contract; `uv run datamodel-codegen` regenerates `src/caesar_search/models/_models.py`. CI fails if the generated file is dirty against the spec.
-- The spec-sync workflow polls the live public spec, regenerates, classifies the diff with oasdiff, and auto-releases non-breaking changes; breaking changes open a PR for review.
+- The spec-sync workflow polls the live public spec, regenerates, classifies the diff with oasdiff, and updates stable review branches. Merging a non-breaking version bump into `main` publishes the release automatically.
 - `uv run pytest` (hermetic, httpx MockTransport) must pass; contract tests are gated behind `CAESAR_CONTRACT=1`.
 - `uv run mypy` strict on the veneer; `uv run ruff check`.
 - Never name upstream search/inference providers in code, docs, or errors.
