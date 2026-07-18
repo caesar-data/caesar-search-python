@@ -447,7 +447,6 @@ class Access(BaseModel):
         extra="allow",
     )
     rate_limit: RateLimit
-    tier: str
 
 
 class DocumentResponse(BaseModel):

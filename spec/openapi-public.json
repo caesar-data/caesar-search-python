@@ -6,13 +6,9 @@
         "properties": {
           "rate_limit": {
             "$ref": "#/components/schemas/RateLimit"
-          },
-          "tier": {
-            "type": "string"
           }
         },
         "required": [
-          "tier",
           "rate_limit"
         ],
         "type": "object"
