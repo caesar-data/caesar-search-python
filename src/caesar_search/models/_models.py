@@ -20,6 +20,15 @@ class CaptureHistoryEntry(BaseModel):
     content_format: str | None = None
 
 
+class Citation(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    index: int
+    title: str
+    url: str
+
+
 class ContentRange(BaseModel):
     model_config = ConfigDict(
         extra="allow",
@@ -303,6 +312,15 @@ class FeedbackRequest(BaseModel):
     """
 
 
+class IntegrationResultsSummary(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    href: str
+    selected: int
+    total: int
+
+
 class Passage(BaseModel):
     model_config = ConfigDict(
         extra="allow",
@@ -332,6 +350,50 @@ class RateLimit(BaseModel):
     limit_rps: int
     remaining: int
     reset_at: str
+
+
+class ResearchJobSummary(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    completed_at: str | None = None
+    created_at: str
+    id: str
+    query: str
+    status: str
+    """
+    queued, running, completed, or failed.
+    """
+
+
+class ResearchRequest(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    field_schema: AnyUrl | None = Field(
+        None,
+        alias="$schema",
+        examples=["https://alpha.api.trycaesar.com/ResearchRequest.json"],
+    )
+    """
+    A URL to the JSON Schema for this object.
+    """
+    excluded_domains: list[str] | None = None
+    """
+    Domains to drop from results.
+    """
+    max_tool_calls: int | None = None
+    """
+    Max tool calls (web_search/web_read/scratchpad) before a final answer is forced. Optional; defaults internally. The agent usually stops earlier on its own.
+    """
+    query: str
+    """
+    Research question to investigate.
+    """
+    source_timeout: int | None = None
+    """
+    Per-source fetch timeout in seconds.
+    """
 
 
 class OnExceed(Enum):
@@ -415,6 +477,21 @@ class SearchScore(BaseModel):
     value: float
 
 
+class ToolInvocation(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    error: str | None = None
+    latency_ms: int
+    ordinal: int
+    query: str | None = None
+    result_count: int
+    status: str
+    tool: str
+    turn: int
+    url: str | None = None
+
+
 class Usage(BaseModel):
     model_config = ConfigDict(
         extra="allow",
@@ -483,6 +560,86 @@ class FeedbackResponse(BaseModel):
     usage: Usage | None = None
 
 
+class IntegrationSearchResult(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    canonical_url: str
+    description: str | None = None
+    doc_id: str
+    index: str | None = None
+    integration: str
+    labels: list[str] | None = None
+    metadata: SearchResultMetadata | None = None
+    mime: str | None = None
+    operation: str
+    passages: list[Passage] | None = None
+    primary_rank: int | None = None
+    provenance: DocumentProvenance | None = None
+    rank: int
+    score: SearchScore | None = None
+    selected: bool
+    snippet: str | None = None
+    source_uri: str | None = None
+    source_url: str | None = None
+    title: str | None = None
+
+
+class ResearchListResponse(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    field_schema: AnyUrl | None = Field(
+        None,
+        alias="$schema",
+        examples=["https://alpha.api.trycaesar.com/ResearchListResponse.json"],
+    )
+    """
+    A URL to the JSON Schema for this object.
+    """
+    access: Access | None = None
+    jobs: list[ResearchJobSummary] | None
+    request_id: str
+
+
+class ResearchResultResponse(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    citations: list[Citation] | None
+    confidence: str
+    content: str
+    failure_tool: str | None = None
+    failure_turn: int | None = None
+    llm_calls: int
+    query: str
+    read_count: int
+    run_id: str | None = None
+    tool_calls_used: int
+    tool_invocations: list[ToolInvocation] | None = None
+
+
+class ResearchStartResponse(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    field_schema: AnyUrl | None = Field(
+        None,
+        alias="$schema",
+        examples=["https://alpha.api.trycaesar.com/ResearchStartResponse.json"],
+    )
+    """
+    A URL to the JSON Schema for this object.
+    """
+    access: Access | None = None
+    id: str
+    """
+    Job id to poll at GET /v1/research/{id}.
+    """
+    request_id: str
+    status: str
+
+
 class SearchRequest(BaseModel):
     model_config = ConfigDict(
         extra="allow",
@@ -545,14 +702,69 @@ class SearchResult(BaseModel):
     description: str | None = None
     doc_id: str
     index: str | None = None
+    labels: list[str] | None = None
     metadata: SearchResultMetadata | None = None
+    mime: str | None = None
     passages: list[Passage] | None = None
     provenance: DocumentProvenance | None = None
     rank: int
     score: SearchScore | None = None
     snippet: str | None = None
+    source_uri: str | None = None
     source_url: str | None = None
     title: str | None = None
+
+
+class IntegrationResultsResponse(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    field_schema: AnyUrl | None = Field(
+        None,
+        alias="$schema",
+        examples=["https://alpha.api.trycaesar.com/IntegrationResultsResponse.json"],
+    )
+    """
+    A URL to the JSON Schema for this object.
+    """
+    access: Access | None = None
+    next_cursor: str | None = None
+    request_id: str
+    results: list[IntegrationSearchResult] | None
+    search_id: str
+    total: int
+    usage: Usage | None = None
+
+
+class ResearchJobResponse(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    field_schema: AnyUrl | None = Field(
+        None,
+        alias="$schema",
+        examples=["https://alpha.api.trycaesar.com/ResearchJobResponse.json"],
+    )
+    """
+    A URL to the JSON Schema for this object.
+    """
+    access: Access | None = None
+    completed_at: str | None = None
+    created_at: str
+    error: str | None = None
+    """
+    Present when status is failed.
+    """
+    id: str
+    request_id: str
+    result: ResearchResultResponse | None = None
+    """
+    Present when status is completed.
+    """
+    status: str
+    """
+    queued, running, completed, or failed.
+    """
 
 
 class SearchResponse(BaseModel):
@@ -568,6 +780,7 @@ class SearchResponse(BaseModel):
     A URL to the JSON Schema for this object.
     """
     access: Access | None = None
+    integration_results: IntegrationResultsSummary | None = None
     ranking: Ranking | None = None
     request_id: str
     results: list[SearchResult] | None
