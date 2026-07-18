@@ -567,9 +567,6 @@
       "Ranking": {
         "additionalProperties": false,
         "properties": {
-          "mode": {
-            "type": "string"
-          },
           "ranker_version": {
             "type": "string"
           },
@@ -578,7 +575,6 @@
           }
         },
         "required": [
-          "mode",
           "ranker_version",
           "score_scope"
         ],
@@ -681,15 +677,6 @@
             "maximum": 50,
             "minimum": 1,
             "type": "integer"
-          },
-          "mode": {
-            "default": "standard",
-            "description": "Retrieval budget and ranking mode: standard (default) and research both rerank results, with research spending the largest retrieval budget.",
-            "enum": [
-              "standard",
-              "research"
-            ],
-            "type": "string"
           },
           "query": {
             "description": "The search query, phrased as the user or agent would ask it. Drives ranking and passage selection even when search_queries supplies a rewrite.",
