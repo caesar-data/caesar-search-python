@@ -164,15 +164,14 @@ def test_with_raw_response_files_methods() -> None:
 
 
 def test_upload_file_does_not_inherit_http_client_headers() -> None:
-    """Defaults on a caller-supplied http_client must never reach storage."""
+    """Credential defaults on either caller-supplied client must never reach storage."""
+    ambient = {"Authorization": "Bearer ambient-credential", "Cookie": "session=1"}
     transport = RecordingTransport(files_handler())
     client = Caesar(
         api_key="test-key",
-        http_client=httpx.Client(
-            transport=transport,
-            headers={"Authorization": "Bearer ambient-credential", "Cookie": "session=1"},
-        ),
-        storage_http_client=httpx.Client(transport=transport),
+        http_client=httpx.Client(transport=transport, headers=ambient),
+        # Even the dedicated storage client gets credential headers stripped.
+        storage_http_client=httpx.Client(transport=transport, headers=ambient),
     )
 
     client.upload_file(b"hello knowledge base", filename="notes.txt")

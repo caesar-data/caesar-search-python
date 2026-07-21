@@ -30,6 +30,9 @@ DEFAULT_MAX_RETRIES = 3
 _BASE_DELAY = 0.5
 _MAX_DELAY = 8.0
 _RETRYABLE_STATUSES = frozenset({429, 500, 502, 503, 504})
+# Stripped from every presigned storage PUT: the URL's signature is the
+# authorization, and client credentials must never reach the storage host.
+_CREDENTIAL_HEADERS = ("Authorization", "Proxy-Authorization", "Cookie")
 _UUID_PATTERN = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.IGNORECASE)
 
 
@@ -232,8 +235,8 @@ class Caesar:
         self._client = http_client or httpx.Client(timeout=timeout)
         # Presigned storage PUTs never run on ``http_client``: its default
         # headers (Authorization, cookies) must not reach storage. Pass
-        # ``storage_http_client`` only for transport concerns (proxy, custom
-        # CA) and give it no credential headers.
+        # ``storage_http_client`` for transport concerns (proxy, custom CA);
+        # credential headers are stripped from PUTs regardless.
         self._storage_client = storage_http_client
         self.with_raw_response = _RawResponses(self)
 
@@ -410,8 +413,11 @@ class Caesar:
 
     def _put_with(self, client: httpx.Client, url: str, data: bytes, headers: dict[str, str]) -> None:
         for attempt in range(self._max_retries + 1):
+            request = client.build_request("PUT", url, content=data, headers=headers)
+            for header in _CREDENTIAL_HEADERS:
+                request.headers.pop(header, None)
             try:
-                response = client.put(url, content=data, headers=headers)
+                response = client.send(request)
             except httpx.TimeoutException as error:
                 raise APITimeoutError(f"upload timed out: {error}") from error
             except httpx.HTTPError as error:
@@ -712,8 +718,11 @@ class AsyncCaesar:
         import asyncio
 
         for attempt in range(self._max_retries + 1):
+            request = client.build_request("PUT", url, content=data, headers=headers)
+            for header in _CREDENTIAL_HEADERS:
+                request.headers.pop(header, None)
             try:
-                response = await client.put(url, content=data, headers=headers)
+                response = await client.send(request)
             except httpx.TimeoutException as error:
                 raise APITimeoutError(f"upload timed out: {error}") from error
             except httpx.HTTPError as error:
