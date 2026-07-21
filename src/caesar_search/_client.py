@@ -222,12 +222,19 @@ class Caesar:
         timeout: float = DEFAULT_TIMEOUT,
         max_retries: int = DEFAULT_MAX_RETRIES,
         http_client: httpx.Client | None = None,
+        storage_http_client: httpx.Client | None = None,
     ) -> None:
         self._api_key = _resolve_key(api_key)
         self._base_url = _resolve_base_url(base_url)
         _require_key_for_public_api(self._api_key, self._base_url)
         self._max_retries = max_retries
+        self._timeout = timeout
         self._client = http_client or httpx.Client(timeout=timeout)
+        # Presigned storage PUTs never run on ``http_client``: its default
+        # headers (Authorization, cookies) must not reach storage. Pass
+        # ``storage_http_client`` only for transport concerns (proxy, custom
+        # CA) and give it no credential headers.
+        self._storage_client = storage_http_client
         self.with_raw_response = _RawResponses(self)
 
     # -- public surface -------------------------------------------------
@@ -387,18 +394,33 @@ class Caesar:
     def _put_presigned(self, url: str, data: bytes, content_type: str | None) -> None:
         """PUT bytes to a presigned storage URL.
 
-        Deliberately sends no client headers: the URL is pre-authorized by its
-        signature, so the API key must never reach storage, and the body must
-        be exactly the presigned size.
+        Runs on a dedicated client — never ``self._client`` — so defaults from
+        a caller-supplied ``http_client`` (Authorization, cookies) cannot reach
+        storage: the URL is pre-authorized by its signature and the API key
+        must never be sent there. The body must be exactly the presigned size.
+        Transient storage errors retry like :meth:`_request`; resending the
+        same presigned bytes is safe.
         """
         headers = {"Content-Type": content_type} if content_type else {}
-        try:
-            response = self._client.put(url, content=data, headers=headers)
-        except httpx.TimeoutException as error:
-            raise APITimeoutError(f"upload timed out: {error}") from error
-        except httpx.HTTPError as error:
-            raise APIConnectionError(f"upload failed: {error}") from error
-        if not response.is_success:
+        if self._storage_client is not None:
+            self._put_with(self._storage_client, url, data, headers)
+            return
+        with httpx.Client(timeout=self._timeout) as storage:
+            self._put_with(storage, url, data, headers)
+
+    def _put_with(self, client: httpx.Client, url: str, data: bytes, headers: dict[str, str]) -> None:
+        for attempt in range(self._max_retries + 1):
+            try:
+                response = client.put(url, content=data, headers=headers)
+            except httpx.TimeoutException as error:
+                raise APITimeoutError(f"upload timed out: {error}") from error
+            except httpx.HTTPError as error:
+                raise APIConnectionError(f"upload failed: {error}") from error
+            if response.status_code in _RETRYABLE_STATUSES and attempt < self._max_retries:
+                time.sleep(_retry_delay(attempt, response.headers.get("Retry-After")))
+                continue
+            if response.is_success:
+                return
             raise status_error_from_response(response)
 
     def close(self) -> None:
@@ -460,6 +482,29 @@ class _RawResponses:
         )
         return self._client._request("/v1/feedback", body)
 
+    def upload_file(
+        self,
+        file: str | os.PathLike[str] | bytes,
+        *,
+        filename: str | None = None,
+        content_type: str | None = None,
+        index: bool = True,
+    ) -> httpx.Response:
+        """Run the full upload flow (presign, PUT, index).
+
+        Returns the final raw API response: the index call, or the presign
+        response when ``index=False``. The storage PUT is internal — its
+        response is checked, not returned.
+        """
+        data, resolved_name = _file_payload(file, filename)
+        presign_response = self._client._request(
+            "/v1/files/presign", _presign_body(resolved_name, len(data), content_type)
+        )
+        self._client._put_presigned(str(presign_response.json()["url"]), data, content_type)
+        if not index:
+            return presign_response
+        return self._client._request("/v1/files/index", {"mode": "incremental"})
+
     def presign_upload(self, filename: str, size: int, **kwargs: Any) -> httpx.Response:
         body = _presign_body(filename, size, kwargs.pop("content_type", None))
         return self._client._request("/v1/files/presign", body)
@@ -488,12 +533,16 @@ class AsyncCaesar:
         timeout: float = DEFAULT_TIMEOUT,
         max_retries: int = DEFAULT_MAX_RETRIES,
         http_client: httpx.AsyncClient | None = None,
+        storage_http_client: httpx.AsyncClient | None = None,
     ) -> None:
         self._api_key = _resolve_key(api_key)
         self._base_url = _resolve_base_url(base_url)
         _require_key_for_public_api(self._api_key, self._base_url)
         self._max_retries = max_retries
+        self._timeout = timeout
         self._client = http_client or httpx.AsyncClient(timeout=timeout)
+        # See Caesar: storage PUTs never run on ``http_client``.
+        self._storage_client = storage_http_client
 
     async def search(
         self,
@@ -578,7 +627,11 @@ class AsyncCaesar:
         becomes searchable (``index=False`` to batch uploads and call
         :meth:`index_files` once).
         """
-        data, resolved_name = _file_payload(file, filename)
+        import asyncio
+
+        # Path reads happen in a worker thread so a large or slow file does
+        # not block the event loop.
+        data, resolved_name = await asyncio.to_thread(_file_payload, file, filename)
         presigned = await self.presign_upload(resolved_name, len(data), content_type=content_type)
         await self._put_presigned(str(presigned.url), data, content_type)
         if not index:
@@ -645,15 +698,31 @@ class AsyncCaesar:
         raise status_error_from_response(last_response)  # type: ignore[arg-type]  # pragma: no cover
 
     async def _put_presigned(self, url: str, data: bytes, content_type: str | None) -> None:
-        """PUT bytes to a presigned storage URL (no client headers; see Caesar)."""
+        """PUT bytes to a presigned storage URL (dedicated client, retried; see Caesar)."""
         headers = {"Content-Type": content_type} if content_type else {}
-        try:
-            response = await self._client.put(url, content=data, headers=headers)
-        except httpx.TimeoutException as error:
-            raise APITimeoutError(f"upload timed out: {error}") from error
-        except httpx.HTTPError as error:
-            raise APIConnectionError(f"upload failed: {error}") from error
-        if not response.is_success:
+        if self._storage_client is not None:
+            await self._put_with(self._storage_client, url, data, headers)
+            return
+        async with httpx.AsyncClient(timeout=self._timeout) as storage:
+            await self._put_with(storage, url, data, headers)
+
+    async def _put_with(
+        self, client: httpx.AsyncClient, url: str, data: bytes, headers: dict[str, str]
+    ) -> None:
+        import asyncio
+
+        for attempt in range(self._max_retries + 1):
+            try:
+                response = await client.put(url, content=data, headers=headers)
+            except httpx.TimeoutException as error:
+                raise APITimeoutError(f"upload timed out: {error}") from error
+            except httpx.HTTPError as error:
+                raise APIConnectionError(f"upload failed: {error}") from error
+            if response.status_code in _RETRYABLE_STATUSES and attempt < self._max_retries:
+                await asyncio.sleep(_retry_delay(attempt, response.headers.get("Retry-After")))
+                continue
+            if response.is_success:
+                return
             raise status_error_from_response(response)
 
     async def aclose(self) -> None:

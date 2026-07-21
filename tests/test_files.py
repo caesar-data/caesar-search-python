@@ -64,7 +64,13 @@ def files_handler(put_status: int = 200) -> Any:
 
 
 def make_client(transport: RecordingTransport) -> Caesar:
-    return Caesar(api_key="test-key", http_client=httpx.Client(transport=transport))
+    # storage_http_client shares the transport so PUTs are recorded in order;
+    # the client itself would otherwise create a real (non-mocked) one per PUT.
+    return Caesar(
+        api_key="test-key",
+        http_client=httpx.Client(transport=transport),
+        storage_http_client=httpx.Client(transport=transport),
+    )
 
 
 def test_upload_file_presigns_puts_and_indexes() -> None:
@@ -157,9 +163,72 @@ def test_with_raw_response_files_methods() -> None:
     assert response.status_code == 200
 
 
+def test_upload_file_does_not_inherit_http_client_headers() -> None:
+    """Defaults on a caller-supplied http_client must never reach storage."""
+    transport = RecordingTransport(files_handler())
+    client = Caesar(
+        api_key="test-key",
+        http_client=httpx.Client(
+            transport=transport,
+            headers={"Authorization": "Bearer ambient-credential", "Cookie": "session=1"},
+        ),
+        storage_http_client=httpx.Client(transport=transport),
+    )
+
+    client.upload_file(b"hello knowledge base", filename="notes.txt")
+
+    put = next(r for r in transport.requests if r.method == "PUT")
+    assert "Authorization" not in put.headers
+    assert "Cookie" not in put.headers
+    # API calls still authenticate with the SDK key, not the ambient default.
+    assert transport.requests[0].headers["Authorization"] == "Bearer test-key"
+
+
+def test_upload_file_retries_transient_storage_errors() -> None:
+    """A 503 from storage retries the PUT — resending presigned bytes is safe."""
+    put_attempts = 0
+
+    def handler(request: httpx.Request, _index: int) -> httpx.Response:
+        nonlocal put_attempts
+        if request.url.host == "storage.example":
+            put_attempts += 1
+            if put_attempts == 1:
+                return httpx.Response(503, text="slow down", headers={"Retry-After": "0"})
+            return httpx.Response(200)
+        response: httpx.Response = files_handler()(request, _index)
+        return response
+
+    transport = RecordingTransport(handler)
+    client = make_client(transport)
+
+    result = client.upload_file(b"hello knowledge base", filename="notes.txt")
+
+    assert result.name == "notes.txt"
+    assert put_attempts == 2
+
+
+def test_with_raw_response_upload_file() -> None:
+    transport = RecordingTransport(files_handler())
+    client = make_client(transport)
+
+    response = client.with_raw_response.upload_file(b"hello knowledge base", filename="notes.txt")
+    assert isinstance(response, httpx.Response)
+    assert response.status_code == 202  # the index call is the final response
+
+    presign_only = client.with_raw_response.upload_file(
+        b"hello knowledge base", filename="notes.txt", index=False
+    )
+    assert presign_only.status_code == 200
+    assert presign_only.json()["url"] == STORAGE_URL
+
+
 async def test_async_upload_file_and_list() -> None:
     transport = RecordingTransport(files_handler())
-    client = AsyncCaesar(api_key="test-key", http_client=httpx.AsyncClient(transport=transport))
+    client = AsyncCaesar(
+        api_key="test-key",
+        http_client=httpx.AsyncClient(transport=transport),
+        storage_http_client=httpx.AsyncClient(transport=transport),
+    )
 
     result = await client.upload_file(b"hello knowledge base", filename="notes.txt")
     assert result == UploadResult(name="notes.txt", sync_id="sync-1", index_state="queued")
