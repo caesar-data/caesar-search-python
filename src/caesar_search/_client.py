@@ -3,14 +3,26 @@ from __future__ import annotations
 import os
 import re
 import time
+from dataclasses import dataclass
+from pathlib import Path
 from types import TracebackType
 from typing import Any
+from urllib.parse import quote
 
 import httpx
 
 from ._exceptions import APIConnectionError, APITimeoutError, MissingAPIKeyError, status_error_from_response
 from ._version import __version__
-from .models import DocumentResponse, FeedbackResponse, SearchResponse
+from .models import (
+    DocumentResponse,
+    FeedbackResponse,
+    FileDeleteResponse,
+    FileIndexResponse,
+    FileIndexStatusResponse,
+    FileListResponse,
+    FilePresignResponse,
+    SearchResponse,
+)
 
 DEFAULT_BASE_URL = "https://alpha.api.trycaesar.com"
 DEFAULT_TIMEOUT = 30.0
@@ -163,6 +175,37 @@ def _feedback_body(
     return body
 
 
+@dataclass(frozen=True)
+class UploadResult:
+    """Outcome of :meth:`Caesar.upload_file` (snake_case, matching the API)."""
+
+    name: str
+    """Stored filename, as listed by ``list_files`` / used by ``delete_file``."""
+
+    sync_id: str | None = None
+    """Indexing run id (poll with ``file_index_status``); None when ``index=False``."""
+
+    index_state: str | None = None
+    """Initial indexing run state; None when ``index=False``."""
+
+
+def _file_payload(file: str | os.PathLike[str] | bytes, filename: str | None) -> tuple[bytes, str]:
+    """Resolve upload input to (bytes, filename). Paths default to their basename."""
+    if isinstance(file, bytes):
+        if not filename:
+            raise ValueError("filename is required when uploading bytes")
+        return file, filename
+    path = Path(file)
+    return path.read_bytes(), filename or path.name
+
+
+def _presign_body(filename: str, size: int, content_type: str | None) -> dict[str, Any]:
+    body: dict[str, Any] = {"filename": filename, "size": size}
+    if content_type is not None:
+        body["content_type"] = content_type
+    return body
+
+
 class Caesar:
     """Synchronous client for the Caesar search API.
 
@@ -264,13 +307,64 @@ class Caesar:
         )
         return FeedbackResponse.model_validate(self._request("/v1/feedback", body).json())
 
+    def upload_file(
+        self,
+        file: str | os.PathLike[str] | bytes,
+        *,
+        filename: str | None = None,
+        content_type: str | None = None,
+        index: bool = True,
+    ) -> UploadResult:
+        """Upload one file to the organization's Files knowledge base.
+
+        Presigns, PUTs the bytes straight to storage (the API key is never
+        sent there), then triggers an incremental indexing run so the file
+        becomes searchable (``index=False`` to batch uploads and call
+        :meth:`index_files` once).
+        """
+        data, resolved_name = _file_payload(file, filename)
+        presigned = self.presign_upload(resolved_name, len(data), content_type=content_type)
+        self._put_presigned(str(presigned.url), data, content_type)
+        if not index:
+            return UploadResult(name=str(presigned.name))
+        started = self.index_files(mode="incremental")
+        return UploadResult(
+            name=str(presigned.name), sync_id=str(started.sync_id), index_state=str(started.state)
+        )
+
+    def presign_upload(
+        self, filename: str, size: int, *, content_type: str | None = None
+    ) -> FilePresignResponse:
+        """Create a presigned upload URL. PUT exactly ``size`` bytes to it, no auth header."""
+        body = _presign_body(filename, size, content_type)
+        return FilePresignResponse.model_validate(self._request("/v1/files/presign", body).json())
+
+    def list_files(self) -> FileListResponse:
+        """List the organization's uploaded files."""
+        return FileListResponse.model_validate(self._request("/v1/files", None, method="GET").json())
+
+    def delete_file(self, name: str) -> FileDeleteResponse:
+        """Delete one uploaded file by name (as returned by :meth:`list_files`)."""
+        path = f"/v1/files/{quote(name, safe='')}"
+        return FileDeleteResponse.model_validate(self._request(path, None, method="DELETE").json())
+
+    def index_files(self, *, mode: str = "incremental") -> FileIndexResponse:
+        """Start an indexing run over uploaded files. Poll with :meth:`file_index_status`."""
+        return FileIndexResponse.model_validate(self._request("/v1/files/index", {"mode": mode}).json())
+
+    def file_index_status(self, sync_id: str) -> FileIndexStatusResponse:
+        """Progress and outcome of one files indexing run."""
+        path = f"/v1/files/index/{quote(sync_id, safe='')}"
+        return FileIndexStatusResponse.model_validate(self._request(path, None, method="GET").json())
+
     # -- plumbing ---------------------------------------------------------
 
-    def _request(self, path: str, body: dict[str, Any]) -> httpx.Response:
+    def _request(self, path: str, body: dict[str, Any] | None, *, method: str = "POST") -> httpx.Response:
         last_response: httpx.Response | None = None
         for attempt in range(self._max_retries + 1):
             try:
-                response = self._client.post(
+                response = self._client.request(
+                    method,
                     f"{self._base_url}{path}",
                     json=body,
                     headers=_headers(self._api_key),
@@ -289,6 +383,23 @@ class Caesar:
             raise status_error_from_response(response)
 
         raise status_error_from_response(last_response)  # type: ignore[arg-type]  # pragma: no cover
+
+    def _put_presigned(self, url: str, data: bytes, content_type: str | None) -> None:
+        """PUT bytes to a presigned storage URL.
+
+        Deliberately sends no client headers: the URL is pre-authorized by its
+        signature, so the API key must never reach storage, and the body must
+        be exactly the presigned size.
+        """
+        headers = {"Content-Type": content_type} if content_type else {}
+        try:
+            response = self._client.put(url, content=data, headers=headers)
+        except httpx.TimeoutException as error:
+            raise APITimeoutError(f"upload timed out: {error}") from error
+        except httpx.HTTPError as error:
+            raise APIConnectionError(f"upload failed: {error}") from error
+        if not response.is_success:
+            raise status_error_from_response(response)
 
     def close(self) -> None:
         self._client.close()
@@ -348,6 +459,22 @@ class _RawResponses:
             extra_body=kwargs.pop("extra_body", None),
         )
         return self._client._request("/v1/feedback", body)
+
+    def presign_upload(self, filename: str, size: int, **kwargs: Any) -> httpx.Response:
+        body = _presign_body(filename, size, kwargs.pop("content_type", None))
+        return self._client._request("/v1/files/presign", body)
+
+    def list_files(self) -> httpx.Response:
+        return self._client._request("/v1/files", None, method="GET")
+
+    def delete_file(self, name: str) -> httpx.Response:
+        return self._client._request(f"/v1/files/{quote(name, safe='')}", None, method="DELETE")
+
+    def index_files(self, **kwargs: Any) -> httpx.Response:
+        return self._client._request("/v1/files/index", {"mode": kwargs.pop("mode", "incremental")})
+
+    def file_index_status(self, sync_id: str) -> httpx.Response:
+        return self._client._request(f"/v1/files/index/{quote(sync_id, safe='')}", None, method="GET")
 
 
 class AsyncCaesar:
@@ -436,13 +563,68 @@ class AsyncCaesar:
         )
         return FeedbackResponse.model_validate((await self._request("/v1/feedback", body)).json())
 
-    async def _request(self, path: str, body: dict[str, Any]) -> httpx.Response:
+    async def upload_file(
+        self,
+        file: str | os.PathLike[str] | bytes,
+        *,
+        filename: str | None = None,
+        content_type: str | None = None,
+        index: bool = True,
+    ) -> UploadResult:
+        """Upload one file to the organization's Files knowledge base.
+
+        Presigns, PUTs the bytes straight to storage (the API key is never
+        sent there), then triggers an incremental indexing run so the file
+        becomes searchable (``index=False`` to batch uploads and call
+        :meth:`index_files` once).
+        """
+        data, resolved_name = _file_payload(file, filename)
+        presigned = await self.presign_upload(resolved_name, len(data), content_type=content_type)
+        await self._put_presigned(str(presigned.url), data, content_type)
+        if not index:
+            return UploadResult(name=str(presigned.name))
+        started = await self.index_files(mode="incremental")
+        return UploadResult(
+            name=str(presigned.name), sync_id=str(started.sync_id), index_state=str(started.state)
+        )
+
+    async def presign_upload(
+        self, filename: str, size: int, *, content_type: str | None = None
+    ) -> FilePresignResponse:
+        """Create a presigned upload URL. PUT exactly ``size`` bytes to it, no auth header."""
+        body = _presign_body(filename, size, content_type)
+        return FilePresignResponse.model_validate((await self._request("/v1/files/presign", body)).json())
+
+    async def list_files(self) -> FileListResponse:
+        """List the organization's uploaded files."""
+        return FileListResponse.model_validate((await self._request("/v1/files", None, method="GET")).json())
+
+    async def delete_file(self, name: str) -> FileDeleteResponse:
+        """Delete one uploaded file by name (as returned by :meth:`list_files`)."""
+        path = f"/v1/files/{quote(name, safe='')}"
+        return FileDeleteResponse.model_validate((await self._request(path, None, method="DELETE")).json())
+
+    async def index_files(self, *, mode: str = "incremental") -> FileIndexResponse:
+        """Start an indexing run over uploaded files. Poll with :meth:`file_index_status`."""
+        return FileIndexResponse.model_validate(
+            (await self._request("/v1/files/index", {"mode": mode})).json()
+        )
+
+    async def file_index_status(self, sync_id: str) -> FileIndexStatusResponse:
+        """Progress and outcome of one files indexing run."""
+        path = f"/v1/files/index/{quote(sync_id, safe='')}"
+        return FileIndexStatusResponse.model_validate((await self._request(path, None, method="GET")).json())
+
+    async def _request(
+        self, path: str, body: dict[str, Any] | None, *, method: str = "POST"
+    ) -> httpx.Response:
         import asyncio
 
         last_response: httpx.Response | None = None
         for attempt in range(self._max_retries + 1):
             try:
-                response = await self._client.post(
+                response = await self._client.request(
+                    method,
                     f"{self._base_url}{path}",
                     json=body,
                     headers=_headers(self._api_key),
@@ -461,6 +643,18 @@ class AsyncCaesar:
             raise status_error_from_response(response)
 
         raise status_error_from_response(last_response)  # type: ignore[arg-type]  # pragma: no cover
+
+    async def _put_presigned(self, url: str, data: bytes, content_type: str | None) -> None:
+        """PUT bytes to a presigned storage URL (no client headers; see Caesar)."""
+        headers = {"Content-Type": content_type} if content_type else {}
+        try:
+            response = await self._client.put(url, content=data, headers=headers)
+        except httpx.TimeoutException as error:
+            raise APITimeoutError(f"upload timed out: {error}") from error
+        except httpx.HTTPError as error:
+            raise APIConnectionError(f"upload failed: {error}") from error
+        if not response.is_success:
+            raise status_error_from_response(response)
 
     async def aclose(self) -> None:
         await self._client.aclose()

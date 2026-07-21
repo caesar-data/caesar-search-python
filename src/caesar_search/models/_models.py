@@ -312,6 +312,219 @@ class FeedbackRequest(BaseModel):
     """
 
 
+class FileDeleteResponse(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    field_schema: AnyUrl | None = Field(
+        None,
+        alias="$schema",
+        examples=["https://alpha.api.trycaesar.com/FileDeleteResponse.json"],
+    )
+    """
+    A URL to the JSON Schema for this object.
+    """
+    deleted: bool
+    """
+    True when the file was removed.
+    """
+
+
+class Mode(Enum):
+    """
+    Indexing mode. incremental (default) processes new and changed files; full reprocesses everything.
+    """
+
+    full = "full"
+    incremental = "incremental"
+
+
+class FileIndexRequest(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    field_schema: AnyUrl | None = Field(
+        None,
+        alias="$schema",
+        examples=["https://alpha.api.trycaesar.com/FileIndexRequest.json"],
+    )
+    """
+    A URL to the JSON Schema for this object.
+    """
+    mode: Mode | None = None
+    """
+    Indexing mode. incremental (default) processes new and changed files; full reprocesses everything.
+    """
+
+
+class FileIndexResponse(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    field_schema: AnyUrl | None = Field(
+        None,
+        alias="$schema",
+        examples=["https://alpha.api.trycaesar.com/FileIndexResponse.json"],
+    )
+    """
+    A URL to the JSON Schema for this object.
+    """
+    state: str
+    """
+    Initial run state.
+    """
+    sync_id: str
+    """
+    Identifier of the accepted indexing run; poll GET /v1/files/index/{sync_id}.
+    """
+
+
+class FileIndexStats(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    bytes: int
+    """
+    Bytes fetched.
+    """
+    deleted: int
+    """
+    Documents removed because the object is gone.
+    """
+    enumerated: int
+    """
+    Objects discovered.
+    """
+    failed: int
+    """
+    Objects that failed processing.
+    """
+    fetched: int
+    """
+    Objects downloaded for extraction.
+    """
+    indexed: int
+    """
+    Documents now searchable.
+    """
+    skipped_unsupported: int
+    """
+    Objects skipped as unsupported types.
+    """
+
+
+class FileIndexStatusResponse(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    field_schema: AnyUrl | None = Field(
+        None,
+        alias="$schema",
+        examples=["https://alpha.api.trycaesar.com/FileIndexStatusResponse.json"],
+    )
+    """
+    A URL to the JSON Schema for this object.
+    """
+    completed_at: str | None
+    """
+    Run completion time (RFC 3339), null while in flight.
+    """
+    error: str | None
+    """
+    Terminal error detail, null while healthy.
+    """
+    started_at: str | None
+    """
+    Run start time (RFC 3339), null before it starts.
+    """
+    state: str
+    """
+    Run state (queued, planning, running, completed, failed, …).
+    """
+    stats: FileIndexStats
+    """
+    Progress counters.
+    """
+    sync_id: str
+    """
+    Indexing run identifier.
+    """
+
+
+class FilePresignRequest(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    field_schema: AnyUrl | None = Field(
+        None,
+        alias="$schema",
+        examples=["https://alpha.api.trycaesar.com/FilePresignRequest.json"],
+    )
+    """
+    A URL to the JSON Schema for this object.
+    """
+    content_type: str | None = Field(None, max_length=255)
+    """
+    Optional MIME type recorded on the object.
+    """
+    filename: str = Field(..., max_length=512, min_length=1)
+    """
+    Filename to upload. Sanitized server-side; the response echoes the stored name.
+    """
+    size: int = Field(..., ge=0)
+    """
+    Exact file size in bytes. The presigned URL binds this length, so the PUT body must match it.
+    """
+
+
+class FilePresignResponse(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    field_schema: AnyUrl | None = Field(
+        None,
+        alias="$schema",
+        examples=["https://alpha.api.trycaesar.com/FilePresignResponse.json"],
+    )
+    """
+    A URL to the JSON Schema for this object.
+    """
+    expires_in_seconds: int
+    """
+    Seconds until the presigned URL expires.
+    """
+    max_object_bytes: int
+    """
+    Per-file upload size limit in bytes.
+    """
+    name: str
+    """
+    Sanitized filename the upload will be stored and listed under.
+    """
+    url: str
+    """
+    Presigned S3 PUT URL. Upload the raw file bytes to this URL with an HTTP PUT (no Authorization header); the body must be exactly the declared size.
+    """
+
+
+class FileSummary(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    last_modified: str | None = None
+    """
+    Upload time (RFC 3339).
+    """
+    name: str
+    """
+    Filename.
+    """
+    size: int
+    """
+    Object size in bytes.
+    """
+
+
 class IntegrationResultsSummary(BaseModel):
     model_config = ConfigDict(
         extra="allow",
@@ -558,6 +771,24 @@ class FeedbackResponse(BaseModel):
     request_id: str
     session_id: str
     usage: Usage | None = None
+
+
+class FileListResponse(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    field_schema: AnyUrl | None = Field(
+        None,
+        alias="$schema",
+        examples=["https://alpha.api.trycaesar.com/FileListResponse.json"],
+    )
+    """
+    A URL to the JSON Schema for this object.
+    """
+    files: list[FileSummary] | None
+    """
+    The organization's uploaded files, newest first.
+    """
 
 
 class IntegrationSearchResult(BaseModel):
