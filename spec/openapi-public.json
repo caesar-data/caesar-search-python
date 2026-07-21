@@ -540,6 +540,310 @@
         ],
         "type": "object"
       },
+      "FileDeleteResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "$schema": {
+            "description": "A URL to the JSON Schema for this object.",
+            "examples": [
+              "https://alpha.api.trycaesar.com/FileDeleteResponse.json"
+            ],
+            "format": "uri",
+            "readOnly": true,
+            "type": "string"
+          },
+          "deleted": {
+            "description": "True when the file was removed.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "deleted"
+        ],
+        "type": "object"
+      },
+      "FileIndexRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "$schema": {
+            "description": "A URL to the JSON Schema for this object.",
+            "examples": [
+              "https://alpha.api.trycaesar.com/FileIndexRequest.json"
+            ],
+            "format": "uri",
+            "readOnly": true,
+            "type": "string"
+          },
+          "mode": {
+            "description": "Indexing mode. incremental (default) processes new and changed files; full reprocesses everything.",
+            "enum": [
+              "full",
+              "incremental"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "FileIndexResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "$schema": {
+            "description": "A URL to the JSON Schema for this object.",
+            "examples": [
+              "https://alpha.api.trycaesar.com/FileIndexResponse.json"
+            ],
+            "format": "uri",
+            "readOnly": true,
+            "type": "string"
+          },
+          "state": {
+            "description": "Initial run state.",
+            "type": "string"
+          },
+          "sync_id": {
+            "description": "Identifier of the accepted indexing run; poll GET /v1/files/index/{sync_id}.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sync_id",
+          "state"
+        ],
+        "type": "object"
+      },
+      "FileIndexStats": {
+        "additionalProperties": false,
+        "properties": {
+          "bytes": {
+            "description": "Bytes fetched.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "deleted": {
+            "description": "Documents removed because the object is gone.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "enumerated": {
+            "description": "Objects discovered.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "failed": {
+            "description": "Objects that failed processing.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "fetched": {
+            "description": "Objects downloaded for extraction.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "indexed": {
+            "description": "Documents now searchable.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "skipped_unsupported": {
+            "description": "Objects skipped as unsupported types.",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "enumerated",
+          "fetched",
+          "indexed",
+          "failed",
+          "skipped_unsupported",
+          "deleted",
+          "bytes"
+        ],
+        "type": "object"
+      },
+      "FileIndexStatusResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "$schema": {
+            "description": "A URL to the JSON Schema for this object.",
+            "examples": [
+              "https://alpha.api.trycaesar.com/FileIndexStatusResponse.json"
+            ],
+            "format": "uri",
+            "readOnly": true,
+            "type": "string"
+          },
+          "completed_at": {
+            "description": "Run completion time (RFC 3339), null while in flight.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "error": {
+            "description": "Terminal error detail, null while healthy.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "started_at": {
+            "description": "Run start time (RFC 3339), null before it starts.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "state": {
+            "description": "Run state (queued, planning, running, completed, failed, …).",
+            "type": "string"
+          },
+          "stats": {
+            "$ref": "#/components/schemas/FileIndexStats",
+            "description": "Progress counters."
+          },
+          "sync_id": {
+            "description": "Indexing run identifier.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sync_id",
+          "state",
+          "stats",
+          "error",
+          "started_at",
+          "completed_at"
+        ],
+        "type": "object"
+      },
+      "FileListResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "$schema": {
+            "description": "A URL to the JSON Schema for this object.",
+            "examples": [
+              "https://alpha.api.trycaesar.com/FileListResponse.json"
+            ],
+            "format": "uri",
+            "readOnly": true,
+            "type": "string"
+          },
+          "files": {
+            "description": "The organization's uploaded files, newest first.",
+            "items": {
+              "$ref": "#/components/schemas/FileSummary"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "files"
+        ],
+        "type": "object"
+      },
+      "FilePresignRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "$schema": {
+            "description": "A URL to the JSON Schema for this object.",
+            "examples": [
+              "https://alpha.api.trycaesar.com/FilePresignRequest.json"
+            ],
+            "format": "uri",
+            "readOnly": true,
+            "type": "string"
+          },
+          "content_type": {
+            "description": "Optional MIME type recorded on the object.",
+            "maxLength": 255,
+            "type": "string"
+          },
+          "filename": {
+            "description": "Filename to upload. Sanitized server-side; the response echoes the stored name.",
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string"
+          },
+          "size": {
+            "description": "Exact file size in bytes. The presigned URL binds this length, so the PUT body must match it.",
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "filename",
+          "size"
+        ],
+        "type": "object"
+      },
+      "FilePresignResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "$schema": {
+            "description": "A URL to the JSON Schema for this object.",
+            "examples": [
+              "https://alpha.api.trycaesar.com/FilePresignResponse.json"
+            ],
+            "format": "uri",
+            "readOnly": true,
+            "type": "string"
+          },
+          "expires_in_seconds": {
+            "description": "Seconds until the presigned URL expires.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "max_object_bytes": {
+            "description": "Per-file upload size limit in bytes.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "name": {
+            "description": "Sanitized filename the upload will be stored and listed under.",
+            "type": "string"
+          },
+          "url": {
+            "description": "Presigned S3 PUT URL. Upload the raw file bytes to this URL with an HTTP PUT (no Authorization header); the body must be exactly the declared size.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "name",
+          "expires_in_seconds",
+          "max_object_bytes"
+        ],
+        "type": "object"
+      },
+      "FileSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "last_modified": {
+            "description": "Upload time (RFC 3339).",
+            "type": "string"
+          },
+          "name": {
+            "description": "Filename.",
+            "type": "string"
+          },
+          "size": {
+            "description": "Object size in bytes.",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "size"
+        ],
+        "type": "object"
+      },
       "IntegrationResultsResponse": {
         "additionalProperties": false,
         "properties": {
@@ -1679,6 +1983,524 @@
         "summary": "Record feedback",
         "tags": [
           "Feedback"
+        ],
+        "x-audience": "public"
+      }
+    },
+    "/v1/files": {
+      "get": {
+        "description": "List the organization's uploaded files in its Files knowledge base.",
+        "operationId": "list-files",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileListResponse"
+                }
+              }
+            },
+            "description": "Uploaded files."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid API key."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "API key does not have the required scope."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Rate limited."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "File service unreachable."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "File endpoints are not configured."
+          }
+        },
+        "security": [
+          {
+            "bearerApiKey": []
+          }
+        ],
+        "summary": "List uploaded files",
+        "tags": [
+          "Files"
+        ],
+        "x-audience": "public"
+      }
+    },
+    "/v1/files/index": {
+      "post": {
+        "description": "Start an indexing run over the organization's uploaded files so they become searchable in the workspace index. Poll GET /v1/files/index/{sync_id} for progress.",
+        "operationId": "index-files",
+        "parameters": [
+          {
+            "description": "Optional client session identifier.",
+            "in": "header",
+            "name": "X-Session-ID",
+            "schema": {
+              "description": "Optional client session identifier.",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FileIndexRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileIndexResponse"
+                }
+              }
+            },
+            "description": "Indexing run accepted."
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Validation error."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid API key."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "API key does not have the required scope."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Rate limited."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "File service unreachable."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "File endpoints or indexing are not configured."
+          }
+        },
+        "security": [
+          {
+            "bearerApiKey": []
+          }
+        ],
+        "summary": "Index uploaded files",
+        "tags": [
+          "Files"
+        ],
+        "x-audience": "public"
+      }
+    },
+    "/v1/files/index/{sync_id}": {
+      "get": {
+        "description": "Progress and outcome of one files indexing run.",
+        "operationId": "get-files-index-status",
+        "parameters": [
+          {
+            "description": "Indexing run identifier returned by POST /v1/files/index.",
+            "in": "path",
+            "name": "sync_id",
+            "required": true,
+            "schema": {
+              "description": "Indexing run identifier returned by POST /v1/files/index.",
+              "maxLength": 128,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileIndexStatusResponse"
+                }
+              }
+            },
+            "description": "Indexing run status."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid API key."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "API key does not have the required scope."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Indexing run not found."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Rate limited."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "File service unreachable."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "File endpoints are not configured."
+          }
+        },
+        "security": [
+          {
+            "bearerApiKey": []
+          }
+        ],
+        "summary": "Get indexing run status",
+        "tags": [
+          "Files"
+        ],
+        "x-audience": "public"
+      }
+    },
+    "/v1/files/presign": {
+      "post": {
+        "description": "Create a presigned S3 PUT URL for one file. Upload the raw bytes to the returned url with an HTTP PUT and no Authorization header; the body must be exactly the declared size. Then trigger POST /v1/files/index to make the file searchable via /v1/search with scope.indexes [\"workspace\"].",
+        "operationId": "presign-file-upload",
+        "parameters": [
+          {
+            "description": "Optional client session identifier.",
+            "in": "header",
+            "name": "X-Session-ID",
+            "schema": {
+              "description": "Optional client session identifier.",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilePresignRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilePresignResponse"
+                }
+              }
+            },
+            "description": "Presigned upload URL."
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Validation error."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid API key."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "API key does not have the required scope."
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "File exceeds the size limit."
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unsupported file type."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Rate limited."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "File service unreachable."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "File endpoints are not configured."
+          }
+        },
+        "security": [
+          {
+            "bearerApiKey": []
+          }
+        ],
+        "summary": "Create a presigned upload URL",
+        "tags": [
+          "Files"
+        ],
+        "x-audience": "public"
+      }
+    },
+    "/v1/files/{name}": {
+      "delete": {
+        "description": "Delete one uploaded file by name. The document drops out of workspace search after the next indexing run (one is triggered automatically).",
+        "operationId": "delete-file",
+        "parameters": [
+          {
+            "description": "Filename to delete, as returned by GET /v1/files.",
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "description": "Filename to delete, as returned by GET /v1/files.",
+              "maxLength": 512,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileDeleteResponse"
+                }
+              }
+            },
+            "description": "File deleted."
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Validation error."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid API key."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "API key does not have the required scope."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Rate limited."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "File service unreachable."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "File endpoints are not configured."
+          }
+        },
+        "security": [
+          {
+            "bearerApiKey": []
+          }
+        ],
+        "summary": "Delete an uploaded file",
+        "tags": [
+          "Files"
         ],
         "x-audience": "public"
       }

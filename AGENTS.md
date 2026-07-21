@@ -8,6 +8,7 @@ Guidance for AI agents using and maintaining `caesar-search` (Python).
 - `read()` accepts a doc_id or URL positionally. A truncated read sets `content.truncated`; continue with `start_char=content.start_char + content.char_count` — do not retry with a bigger `max_chars`.
 - `search(verbosity=...)` controls payload shape: `ids_only` (handles only), `compact`, `standard` (default), `full` (adds provenance). `max_chars_total=` sets a hard response budget.
 - Set `CAESAR_API_KEY`; never hardcode keys. Exceptions: catch `MissingAPIKeyError`/`AuthenticationError`/`RateLimitError`/`APIStatusError`.
+- File uploads: `upload_file(path_or_bytes, filename=...)` presigns + PUTs + auto-indexes (opt out with `index=False`, then `index_files()` once for a batch). Manage with `list_files()` / `delete_file(name)` / `file_index_status(sync_id)`. The presigned PUT carries no client headers — the API key never reaches storage.
 
 ## Common mistakes
 

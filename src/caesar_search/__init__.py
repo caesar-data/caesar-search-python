@@ -1,7 +1,7 @@
 """caesar-search: official Python SDK for the Caesar search API."""
 
 from . import models
-from ._client import DEFAULT_BASE_URL, AsyncCaesar, Caesar
+from ._client import DEFAULT_BASE_URL, AsyncCaesar, Caesar, UploadResult
 from ._exceptions import (
     APIConnectionError,
     APIStatusError,
@@ -13,7 +13,16 @@ from ._exceptions import (
     RateLimitError,
 )
 from ._version import __version__
-from .models import DocumentResponse, FeedbackResponse, SearchResponse
+from .models import (
+    DocumentResponse,
+    FeedbackResponse,
+    FileDeleteResponse,
+    FileIndexResponse,
+    FileIndexStatusResponse,
+    FileListResponse,
+    FilePresignResponse,
+    SearchResponse,
+)
 
 __all__ = [
     "DEFAULT_BASE_URL",
@@ -26,10 +35,16 @@ __all__ = [
     "CaesarError",
     "DocumentResponse",
     "FeedbackResponse",
+    "FileDeleteResponse",
+    "FileIndexResponse",
+    "FileIndexStatusResponse",
+    "FileListResponse",
+    "FilePresignResponse",
     "InsufficientBalanceError",
     "MissingAPIKeyError",
     "RateLimitError",
     "SearchResponse",
+    "UploadResult",
     "__version__",
     "models",
 ]
