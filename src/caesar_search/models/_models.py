@@ -713,6 +713,304 @@ class Usage(BaseModel):
     requests: int
 
 
+class UsageEndpointSummary(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    errors: int
+    """
+    4xx/5xx responses on this route.
+    """
+    label: str
+    """
+    Human label for known routes; raw route otherwise.
+    """
+    p95_duration_ms: float
+    """
+    95th-percentile duration on this route.
+    """
+    requests: int
+    """
+    Requests to this route.
+    """
+    route: str
+    """
+    Public API route, e.g. /v1/search.
+    """
+
+
+class UsageHeadline(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    avg_duration_ms: float
+    """
+    Mean request duration.
+    """
+    error_rate: float
+    """
+    errors / requests; 0 when there are no requests.
+    """
+    errors: int
+    """
+    Requests that answered 4xx or 5xx.
+    """
+    p95_duration_ms: float
+    """
+    95th-percentile request duration.
+    """
+    requests: int
+    """
+    Total API requests in the window.
+    """
+    spend_cents: float
+    """
+    Billable platform spend in exact (possibly fractional) cents.
+    """
+
+
+class Status(Enum):
+    """
+    Key lifecycle state.
+    """
+
+    active = "active"
+    deleted = "deleted"
+
+
+class UsageKeySummary(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    api_key_id: str
+    """
+    API key identifier.
+    """
+    errors: int
+    """
+    4xx/5xx responses attributed to this key.
+    """
+    key_prefix: str
+    """
+    Public key prefix (never the secret).
+    """
+    last_used_at: str
+    """
+    Most recent request time (RFC 3339).
+    """
+    name: str
+    """
+    Key name; deleted keys are suffixed "(deleted)".
+    """
+    p95_duration_ms: float
+    """
+    95th-percentile duration for this key.
+    """
+    requests: int
+    """
+    Requests attributed to this key.
+    """
+    spend_cents: float
+    """
+    Billable spend attributed to this key, exact cents.
+    """
+    status: Status
+    """
+    Key lifecycle state.
+    """
+
+
+class UsageLatencyPoint(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    avg_duration_ms: float
+    """
+    Mean request duration in this bucket.
+    """
+    bucket: str
+    """
+    Bucket start (RFC 3339, UTC-aligned).
+    """
+    p95_duration_ms: float
+    """
+    95th-percentile duration in this bucket.
+    """
+
+
+class UsageProductSummary(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    label: str
+    """
+    Human product label.
+    """
+    product: str
+    """
+    Billable product identifier (web_search, document_get, research).
+    """
+    requests: int
+    """
+    Metered billable count.
+    """
+    spend_cents: float
+    """
+    Spend for this product in the window.
+    """
+
+
+class Interval(Enum):
+    """
+    Bucket size of the series.
+    """
+
+    hour = "hour"
+    day = "day"
+
+
+class UsageRange(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    from_: str = Field(..., alias="from")
+    """
+    Window start (RFC 3339, inclusive).
+    """
+    interval: Interval
+    """
+    Bucket size of the series.
+    """
+    timezone: str
+    """
+    Always UTC.
+    """
+    to: str
+    """
+    Window end (RFC 3339, exclusive).
+    """
+
+
+class UsageRequestFacets(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    api_keys: dict[str, int]
+    """
+    Counts keyed by API key id.
+    """
+    error_codes: dict[str, int]
+    """
+    Counts keyed by error code.
+    """
+    methods: dict[str, int]
+    """
+    Counts keyed by HTTP method.
+    """
+    routes: dict[str, int]
+    """
+    Counts keyed by route template.
+    """
+    status: dict[str, int]
+    """
+    Counts keyed all/errors/4xx/5xx/success.
+    """
+
+
+class UsageRequestLogRow(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    api_key_id: str | None
+    """
+    API key that made the request, when attributable.
+    """
+    bytes_returned: int
+    """
+    Response body size in bytes.
+    """
+    created_at: str
+    """
+    When the request completed (ISO 8601, UTC).
+    """
+    duration_ms: int
+    """
+    Server-side duration in milliseconds.
+    """
+    error_code: str | None
+    """
+    Error code for failed requests; null for successes.
+    """
+    id: str
+    """
+    Opaque row id.
+    """
+    method: str
+    """
+    HTTP method.
+    """
+    request_id: str
+    """
+    The request id echoed in the response envelope; quote this in support requests.
+    """
+    route: str
+    """
+    Matched route template, e.g. /v1/research/{id}.
+    """
+    status: int
+    """
+    HTTP status returned.
+    """
+    user_agent: str | None
+    """
+    Client user agent as sent.
+    """
+
+
+class UsageRequestLogWindow(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    from_: str = Field(..., alias="from")
+    """
+    Effective window start (ISO 8601).
+    """
+    retention_days: int
+    """
+    How many days of requests the log retains.
+    """
+    to: str
+    """
+    Effective window end (ISO 8601).
+    """
+
+
+class UsageSeriesPoint(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    bucket: str
+    """
+    Bucket start (RFC 3339, UTC-aligned).
+    """
+    errors: int
+    """
+    4xx/5xx responses in this bucket.
+    """
+    group_id: str | None
+    """
+    Group identifier when the series is grouped, null otherwise.
+    """
+    group_label: str | None
+    """
+    Human label for the group, null when ungrouped.
+    """
+    requests: int
+    """
+    Requests in this bucket.
+    """
+
+
 class Warning(BaseModel):
     model_config = ConfigDict(
         extra="allow",
@@ -944,6 +1242,86 @@ class SearchResult(BaseModel):
     source_uri: str | None = None
     source_url: str | None = None
     title: str | None = None
+
+
+class UsageOverviewResponse(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    field_schema: AnyUrl | None = Field(
+        None,
+        alias="$schema",
+        examples=["https://alpha.api.trycaesar.com/UsageOverviewResponse.json"],
+    )
+    """
+    A URL to the JSON Schema for this object.
+    """
+    endpoints: list[UsageEndpointSummary] | None
+    """
+    Per-route breakdown, requests desc.
+    """
+    headline: UsageHeadline
+    """
+    Window totals.
+    """
+    keys: list[UsageKeySummary] | None
+    """
+    Per-API-key breakdown, requests desc.
+    """
+    latency_series: list[UsageLatencyPoint] | None
+    """
+    Latency per bucket, ungrouped.
+    """
+    products: list[UsageProductSummary] | None
+    """
+    Billable products and spend.
+    """
+    range: UsageRange
+    """
+    The resolved query window.
+    """
+    series: list[UsageSeriesPoint] | None
+    """
+    Requests per bucket, zero-filled.
+    """
+
+
+class UsageRequestLogResponse(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    field_schema: AnyUrl | None = Field(
+        None,
+        alias="$schema",
+        examples=["https://alpha.api.trycaesar.com/UsageRequestLogResponse.json"],
+    )
+    """
+    A URL to the JSON Schema for this object.
+    """
+    facets: UsageRequestFacets
+    """
+    Window-wide filter counts.
+    """
+    newer_cursor: str | None
+    """
+    Cursor for the previous (newer) page; null on the newest page.
+    """
+    older_cursor: str | None
+    """
+    Cursor for the next (older) page; null when exhausted.
+    """
+    requests: list[UsageRequestLogRow] | None
+    """
+    Requests, newest first.
+    """
+    total: int
+    """
+    Requests matching the filters across the whole window.
+    """
+    window: UsageRequestLogWindow
+    """
+    The window actually queried.
+    """
 
 
 class IntegrationResultsResponse(BaseModel):
