@@ -1703,6 +1703,569 @@
         ],
         "type": "object"
       },
+      "UsageEndpointSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "errors": {
+            "description": "4xx/5xx responses on this route.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "label": {
+            "description": "Human label for known routes; raw route otherwise.",
+            "type": "string"
+          },
+          "p95_duration_ms": {
+            "description": "95th-percentile duration on this route.",
+            "format": "double",
+            "type": "number"
+          },
+          "requests": {
+            "description": "Requests to this route.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "route": {
+            "description": "Public API route, e.g. /v1/search.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "route",
+          "label",
+          "requests",
+          "errors",
+          "p95_duration_ms"
+        ],
+        "type": "object"
+      },
+      "UsageHeadline": {
+        "additionalProperties": false,
+        "properties": {
+          "avg_duration_ms": {
+            "description": "Mean request duration.",
+            "format": "double",
+            "type": "number"
+          },
+          "error_rate": {
+            "description": "errors / requests; 0 when there are no requests.",
+            "format": "double",
+            "type": "number"
+          },
+          "errors": {
+            "description": "Requests that answered 4xx or 5xx.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "p95_duration_ms": {
+            "description": "95th-percentile request duration.",
+            "format": "double",
+            "type": "number"
+          },
+          "requests": {
+            "description": "Total API requests in the window.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "spend_cents": {
+            "description": "Billable platform spend in exact (possibly fractional) cents.",
+            "format": "double",
+            "type": "number"
+          }
+        },
+        "required": [
+          "requests",
+          "errors",
+          "error_rate",
+          "avg_duration_ms",
+          "p95_duration_ms",
+          "spend_cents"
+        ],
+        "type": "object"
+      },
+      "UsageKeySummary": {
+        "additionalProperties": false,
+        "properties": {
+          "api_key_id": {
+            "description": "API key identifier.",
+            "type": "string"
+          },
+          "errors": {
+            "description": "4xx/5xx responses attributed to this key.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "key_prefix": {
+            "description": "Public key prefix (never the secret).",
+            "type": "string"
+          },
+          "last_used_at": {
+            "description": "Most recent request time (RFC 3339).",
+            "type": "string"
+          },
+          "name": {
+            "description": "Key name; deleted keys are suffixed \"(deleted)\".",
+            "type": "string"
+          },
+          "p95_duration_ms": {
+            "description": "95th-percentile duration for this key.",
+            "format": "double",
+            "type": "number"
+          },
+          "requests": {
+            "description": "Requests attributed to this key.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "spend_cents": {
+            "description": "Billable spend attributed to this key, exact cents.",
+            "format": "double",
+            "type": "number"
+          },
+          "status": {
+            "description": "Key lifecycle state.",
+            "enum": [
+              "active",
+              "deleted"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "api_key_id",
+          "name",
+          "key_prefix",
+          "status",
+          "requests",
+          "errors",
+          "p95_duration_ms",
+          "last_used_at",
+          "spend_cents"
+        ],
+        "type": "object"
+      },
+      "UsageLatencyPoint": {
+        "additionalProperties": false,
+        "properties": {
+          "avg_duration_ms": {
+            "description": "Mean request duration in this bucket.",
+            "format": "double",
+            "type": "number"
+          },
+          "bucket": {
+            "description": "Bucket start (RFC 3339, UTC-aligned).",
+            "type": "string"
+          },
+          "p95_duration_ms": {
+            "description": "95th-percentile duration in this bucket.",
+            "format": "double",
+            "type": "number"
+          }
+        },
+        "required": [
+          "bucket",
+          "avg_duration_ms",
+          "p95_duration_ms"
+        ],
+        "type": "object"
+      },
+      "UsageOverviewResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "$schema": {
+            "description": "A URL to the JSON Schema for this object.",
+            "examples": [
+              "https://alpha.api.trycaesar.com/UsageOverviewResponse.json"
+            ],
+            "format": "uri",
+            "readOnly": true,
+            "type": "string"
+          },
+          "endpoints": {
+            "description": "Per-route breakdown, requests desc.",
+            "items": {
+              "$ref": "#/components/schemas/UsageEndpointSummary"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "headline": {
+            "$ref": "#/components/schemas/UsageHeadline",
+            "description": "Window totals."
+          },
+          "keys": {
+            "description": "Per-API-key breakdown, requests desc.",
+            "items": {
+              "$ref": "#/components/schemas/UsageKeySummary"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "latency_series": {
+            "description": "Latency per bucket, ungrouped.",
+            "items": {
+              "$ref": "#/components/schemas/UsageLatencyPoint"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "products": {
+            "description": "Billable products and spend.",
+            "items": {
+              "$ref": "#/components/schemas/UsageProductSummary"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "range": {
+            "$ref": "#/components/schemas/UsageRange",
+            "description": "The resolved query window."
+          },
+          "series": {
+            "description": "Requests per bucket, zero-filled.",
+            "items": {
+              "$ref": "#/components/schemas/UsageSeriesPoint"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "range",
+          "headline",
+          "series",
+          "latency_series",
+          "keys",
+          "endpoints",
+          "products"
+        ],
+        "type": "object"
+      },
+      "UsageProductSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "description": "Human product label.",
+            "type": "string"
+          },
+          "product": {
+            "description": "Billable product identifier (web_search, document_get, research).",
+            "type": "string"
+          },
+          "requests": {
+            "description": "Metered billable count.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "spend_cents": {
+            "description": "Spend for this product in the window.",
+            "format": "double",
+            "type": "number"
+          }
+        },
+        "required": [
+          "product",
+          "label",
+          "requests",
+          "spend_cents"
+        ],
+        "type": "object"
+      },
+      "UsageRange": {
+        "additionalProperties": false,
+        "properties": {
+          "from": {
+            "description": "Window start (RFC 3339, inclusive).",
+            "type": "string"
+          },
+          "interval": {
+            "description": "Bucket size of the series.",
+            "enum": [
+              "hour",
+              "day"
+            ],
+            "type": "string"
+          },
+          "timezone": {
+            "description": "Always UTC.",
+            "type": "string"
+          },
+          "to": {
+            "description": "Window end (RFC 3339, exclusive).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "from",
+          "to",
+          "interval",
+          "timezone"
+        ],
+        "type": "object"
+      },
+      "UsageRequestFacets": {
+        "additionalProperties": false,
+        "properties": {
+          "api_keys": {
+            "additionalProperties": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "description": "Counts keyed by API key id.",
+            "type": "object"
+          },
+          "error_codes": {
+            "additionalProperties": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "description": "Counts keyed by error code.",
+            "type": "object"
+          },
+          "methods": {
+            "additionalProperties": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "description": "Counts keyed by HTTP method.",
+            "type": "object"
+          },
+          "routes": {
+            "additionalProperties": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "description": "Counts keyed by route template.",
+            "type": "object"
+          },
+          "status": {
+            "additionalProperties": {
+              "format": "int64",
+              "type": "integer"
+            },
+            "description": "Counts keyed all/errors/4xx/5xx/success.",
+            "type": "object"
+          }
+        },
+        "required": [
+          "status",
+          "routes",
+          "methods",
+          "api_keys",
+          "error_codes"
+        ],
+        "type": "object"
+      },
+      "UsageRequestLogResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "$schema": {
+            "description": "A URL to the JSON Schema for this object.",
+            "examples": [
+              "https://alpha.api.trycaesar.com/UsageRequestLogResponse.json"
+            ],
+            "format": "uri",
+            "readOnly": true,
+            "type": "string"
+          },
+          "facets": {
+            "$ref": "#/components/schemas/UsageRequestFacets",
+            "description": "Window-wide filter counts."
+          },
+          "newer_cursor": {
+            "description": "Cursor for the previous (newer) page; null on the newest page.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "older_cursor": {
+            "description": "Cursor for the next (older) page; null when exhausted.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "requests": {
+            "description": "Requests, newest first.",
+            "items": {
+              "$ref": "#/components/schemas/UsageRequestLogRow"
+            },
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "total": {
+            "description": "Requests matching the filters across the whole window.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "window": {
+            "$ref": "#/components/schemas/UsageRequestLogWindow",
+            "description": "The window actually queried."
+          }
+        },
+        "required": [
+          "requests",
+          "newer_cursor",
+          "older_cursor",
+          "total",
+          "facets",
+          "window"
+        ],
+        "type": "object"
+      },
+      "UsageRequestLogRow": {
+        "additionalProperties": false,
+        "properties": {
+          "api_key_id": {
+            "description": "API key that made the request, when attributable.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "bytes_returned": {
+            "description": "Response body size in bytes.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "created_at": {
+            "description": "When the request completed (ISO 8601, UTC).",
+            "type": "string"
+          },
+          "duration_ms": {
+            "description": "Server-side duration in milliseconds.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "error_code": {
+            "description": "Error code for failed requests; null for successes.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "id": {
+            "description": "Opaque row id.",
+            "type": "string"
+          },
+          "method": {
+            "description": "HTTP method.",
+            "type": "string"
+          },
+          "request_id": {
+            "description": "The request id echoed in the response envelope; quote this in support requests.",
+            "type": "string"
+          },
+          "route": {
+            "description": "Matched route template, e.g. /v1/research/{id}.",
+            "type": "string"
+          },
+          "status": {
+            "description": "HTTP status returned.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "user_agent": {
+            "description": "Client user agent as sent.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "request_id",
+          "created_at",
+          "method",
+          "route",
+          "status",
+          "duration_ms",
+          "bytes_returned",
+          "api_key_id",
+          "error_code",
+          "user_agent"
+        ],
+        "type": "object"
+      },
+      "UsageRequestLogWindow": {
+        "additionalProperties": false,
+        "properties": {
+          "from": {
+            "description": "Effective window start (ISO 8601).",
+            "type": "string"
+          },
+          "retention_days": {
+            "description": "How many days of requests the log retains.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "to": {
+            "description": "Effective window end (ISO 8601).",
+            "type": "string"
+          }
+        },
+        "required": [
+          "from",
+          "to",
+          "retention_days"
+        ],
+        "type": "object"
+      },
+      "UsageSeriesPoint": {
+        "additionalProperties": false,
+        "properties": {
+          "bucket": {
+            "description": "Bucket start (RFC 3339, UTC-aligned).",
+            "type": "string"
+          },
+          "errors": {
+            "description": "4xx/5xx responses in this bucket.",
+            "format": "int64",
+            "type": "integer"
+          },
+          "group_id": {
+            "description": "Group identifier when the series is grouped, null otherwise.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "group_label": {
+            "description": "Human label for the group, null when ungrouped.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "requests": {
+            "description": "Requests in this bucket.",
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "bucket",
+          "group_id",
+          "group_label",
+          "requests",
+          "errors"
+        ],
+        "type": "object"
+      },
       "Warning": {
         "additionalProperties": false,
         "properties": {
@@ -2543,6 +3106,16 @@
             },
             "description": "Invalid API key, or missing API key when keyless access is disabled."
           },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "API key does not have the required scope."
+          },
           "429": {
             "content": {
               "application/json": {
@@ -2709,6 +3282,16 @@
               }
             },
             "description": "Invalid API key, or missing API key when keyless access is disabled."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "API key does not have the required scope."
           },
           "404": {
             "content": {
@@ -2992,6 +3575,391 @@
         "summary": "Get stored integration results",
         "tags": [
           "Search"
+        ],
+        "x-audience": "public"
+      }
+    },
+    "/v1/usage": {
+      "get": {
+        "description": "Usage analytics for the API key's organization: request and error totals, latency, per-key and per-endpoint breakdowns, and billable product spend. Defaults to the last 30 days in day buckets (UTC).",
+        "operationId": "get-usage",
+        "parameters": [
+          {
+            "description": "Window start (ISO 8601). Default: 30 days before to.",
+            "explode": false,
+            "in": "query",
+            "name": "from",
+            "schema": {
+              "description": "Window start (ISO 8601). Default: 30 days before to.",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Window end (ISO 8601). Default: now.",
+            "explode": false,
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "description": "Window end (ISO 8601). Default: now.",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Bucket size for the series. Default day; hour requires a range of at most 8 days.",
+            "explode": false,
+            "in": "query",
+            "name": "interval",
+            "schema": {
+              "description": "Bucket size for the series. Default day; hour requires a range of at most 8 days.",
+              "enum": [
+                "",
+                "hour",
+                "day"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Comma-separated API key uuids to filter by (at most 50).",
+            "explode": false,
+            "in": "query",
+            "name": "api_key_ids",
+            "schema": {
+              "description": "Comma-separated API key uuids to filter by (at most 50).",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Optional grouping of the request series.",
+            "explode": false,
+            "in": "query",
+            "name": "group_by",
+            "schema": {
+              "description": "Optional grouping of the request series.",
+              "enum": [
+                "",
+                "none",
+                "api_key",
+                "endpoint",
+                "status_class"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageOverviewResponse"
+                }
+              }
+            },
+            "description": "Organization usage overview."
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid range or filter."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid API key."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "API key does not have the required scope."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Rate limited."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Usage service unreachable."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Usage endpoint is not configured."
+          }
+        },
+        "security": [
+          {
+            "bearerApiKey": []
+          }
+        ],
+        "summary": "Get organization usage",
+        "tags": [
+          "Usage"
+        ],
+        "x-audience": "public"
+      }
+    },
+    "/v1/usage/requests": {
+      "get": {
+        "description": "Individual API requests for the key's organization, with window-wide filter counts. Cursor-paginated. Covers the configured retention window, reported as retention_days in the response, which may be shorter than the aggregate usage window.",
+        "operationId": "list-usage-requests",
+        "parameters": [
+          {
+            "description": "Window start (ISO 8601). Raised to the retention floor when older. Default: the retention floor.",
+            "explode": false,
+            "in": "query",
+            "name": "from",
+            "schema": {
+              "description": "Window start (ISO 8601). Raised to the retention floor when older. Default: the retention floor.",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Window end (ISO 8601). Default: now.",
+            "explode": false,
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "description": "Window end (ISO 8601). Default: now.",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Comma-separated API key uuids to filter by (at most 50).",
+            "explode": false,
+            "in": "query",
+            "name": "api_key_ids",
+            "schema": {
+              "description": "Comma-separated API key uuids to filter by (at most 50).",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Comma-separated route templates to filter by (at most 50).",
+            "explode": false,
+            "in": "query",
+            "name": "routes",
+            "schema": {
+              "description": "Comma-separated route templates to filter by (at most 50).",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Comma-separated HTTP methods to filter by (at most 50).",
+            "explode": false,
+            "in": "query",
+            "name": "methods",
+            "schema": {
+              "description": "Comma-separated HTTP methods to filter by (at most 50).",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Comma-separated error codes to filter by (at most 50).",
+            "explode": false,
+            "in": "query",
+            "name": "error_codes",
+            "schema": {
+              "description": "Comma-separated error codes to filter by (at most 50).",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Status filter. Default all.",
+            "explode": false,
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "description": "Status filter. Default all.",
+              "enum": [
+                "",
+                "all",
+                "errors",
+                "4xx",
+                "5xx",
+                "success"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sort order. Default newest.",
+            "explode": false,
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "description": "Sort order. Default newest.",
+              "enum": [
+                "",
+                "newest",
+                "oldest",
+                "slowest",
+                "fastest"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Return only the request with this id.",
+            "explode": false,
+            "in": "query",
+            "name": "request_id",
+            "schema": {
+              "description": "Return only the request with this id.",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from a previous response.",
+            "explode": false,
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "description": "Opaque cursor from a previous response.",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size, 1-200. Default 50.",
+            "explode": false,
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "description": "Page size, 1-200. Default 50.",
+              "format": "int64",
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Set 0 to omit the window-wide filter counts. Default 1.",
+            "explode": false,
+            "in": "query",
+            "name": "facets",
+            "schema": {
+              "description": "Set 0 to omit the window-wide filter counts. Default 1.",
+              "enum": [
+                "",
+                "0",
+                "1"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageRequestLogResponse"
+                }
+              }
+            },
+            "description": "One page of the request log."
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid range, filter, or cursor."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid API key."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "API key does not have the required scope, or carries no organization."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Rate limited."
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Usage service unreachable."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Usage endpoint is not configured."
+          }
+        },
+        "security": [
+          {
+            "bearerApiKey": []
+          }
+        ],
+        "summary": "List organization requests",
+        "tags": [
+          "Usage"
         ],
         "x-audience": "public"
       }
